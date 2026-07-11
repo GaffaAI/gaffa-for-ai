@@ -12,18 +12,24 @@ Five Claude Code skills for building on the [gaffa.dev](https://gaffa.dev) brows
 
 ## Install
 
-Each skill is a self-contained folder. To use one, copy it into a location Claude Code reads skills from:
+Each skill is a self-contained folder that follows the open Agent Skills standard (a `SKILL.md` with `name` and `description` frontmatter), so it works in any tool that reads that format. Copy the skill folders you want into the skills directory your tool reads:
 
-- a project's `.claude/skills/<skill-name>/`, or
-- your personal `~/.claude/skills/<skill-name>/`.
+| Tool | Project directory | Personal directory |
+|---|---|---|
+| Claude Code | `.claude/skills/` | `~/.claude/skills/` |
+| Cursor (2.4+) | `.cursor/skills/` | |
+| Codex CLI | `.agents/skills/` | `~/.agents/skills/` |
+| Gemini CLI | `.gemini/skills/` | `~/.gemini/skills/` |
 
-For example, to install `gaffa-authoring` into the current project:
+For example, to install `gaffa-authoring` into a project on Claude Code:
 
 ```
 cp -r gaffa-authoring .claude/skills/gaffa-authoring
 ```
 
-Copy only the skills you want. They do not depend on each other.
+Swap the target for your tool, for example `.cursor/skills/gaffa-authoring` or `.agents/skills/gaffa-authoring` on Codex. Copy only the skills you want, they do not depend on each other. Restart or reload the tool after adding a skill so it picks them up.
+
+The agent selects a skill automatically from its `description` when the task matches. The `/gaffa-find`, `/gaffa-debug`, `/gaffa-bulk`, and `/gaffa-support` slash commands are a Claude Code affordance. In other tools, describe the task and the agent invokes the right skill.
 
 ## Setup
 
