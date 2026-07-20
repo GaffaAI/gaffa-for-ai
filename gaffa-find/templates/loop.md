@@ -36,7 +36,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 
 ## Targeted extraction with the parse_json action
 
-The extraction action is always `parse_json`. There is no `/v1/schemas` action type. Pass an inline `data_schema`, or reference a stored schema with `data_schema_id` after creating it via the `/v1/schemas` endpoint.
+Only reach for this once you have ruled out a deterministic path, per step 3 of the loop in SKILL.md. LLM-backed extraction runs through the `parse_json` action, and there is no `/v1/schemas` action type. Pass an inline `data_schema`, or reference a stored schema with `data_schema_id` after creating it via the `/v1/schemas` endpoint.
 
 ```bash
 curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
