@@ -8,7 +8,7 @@ Map recording fields to a likely cause and the smallest fix. Pull the recording 
 | Bare 403 `Forbidden`, no recording, no `data.error_reason`, non-curl client | edge blocked the request User-Agent | Set an explicit `User-Agent` header. Confirm the same request works from curl |
 | `data.state` `completed` but an action `output` is empty | target-site DOM change vs wrong selector | Diff actions against a fresh capture, then correct the selector or accept the DOM moved |
 | `parse_json` action has `error: action_failed`, no `output` | invalid `data_schema`, or `parse_json` run over the full DOM of a large page | Fix the schema to the structured form first. If the schema is valid, narrow the input with a `selector` or `input_token_cap` |
-| `data.error_reason` matches bot detection or captcha | target-site bot protection | Set `proxy_location` (us, ie, sg, fr) or use residential. Not a script change |
+| `data.error_reason` matches bot detection or captcha | target-site bot protection | Set `proxy_location` to a residential location (us, ie, sg, fr). If blocked, try another, unless the goal is geo-specific. Not a script change |
 | `data.running_time` much greater than `data.page_load_time` | flaky timing | Add a `wait` action or raise `time_limit` |
 | `data.from_cache: true` when fresh data expected | cross-user cache hit | Set `max_cache_age: 0` or change a parameter to bust the cache key |
 | `GET` returns 404 | recording expired past retention | Re-run with `record_request: true`. Retention is 7 days / 30 days / 3 months by plan |
