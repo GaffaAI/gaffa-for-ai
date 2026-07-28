@@ -6,7 +6,7 @@ Per-action parameters, fetched from the live gaffa docs. Read this on demand whe
 
 - `type` (string, required): the action type identifier, for example `capture_dom`.
 - `continue_on_fail` (boolean, optional): continue the run if this action fails. Default `false`.
-- `customId` (string, optional): a custom action identifier. Default `null`.
+- `custom_id` (string, optional): a custom action identifier, echoed back on the matching action in the response. Default `null`.
 
 ## Actions without outputs
 
@@ -92,8 +92,4 @@ Verified behavior: running `parse_json` over the full DOM of a large, content-ri
 
 ## When to use parse_json
 
-`parse_json` is LLM-backed, so it is token-priced and its output can vary between runs. Weigh that against a deterministic path before reaching for it, and explain the trade-off to the developer so they can choose.
-
-- Prefer a deterministic path when the value sits in a stable, well-structured place. A `selector` with a plain capture, `parse_table`, or a small parsing step in the target project's own language is cheaper, repeatable, and gives the same result every run. Good for a price in a known element, a field in a JSON blob, a table.
-- Reach for `parse_json` when the value is embedded in free text or its location varies from page to page (for example a salary mentioned somewhere inside a job description), or when the task is interpretive rather than a lookup (summarising a page, classifying content). This is where the LLM earns its cost, because a selector cannot express it.
-- It is the wrong tool when you need identical, reproducible output across runs. Use a deterministic path there instead.
+The rule for choosing between `parse_json` and a deterministic path lives in "Choosing an extraction action" in `SKILL.md`, because the choice has to be made before you get here. If you are reading this page to look up `parse_json` parameters and have not weighed a deterministic path yet, go back and do that first.

@@ -51,6 +51,10 @@ A failed URL records `"result": null` and a non-null `"error"` with the failure 
 
 ## Per-request shape
 
+Pick the extraction action before you copy either shape below, per the rule in `SKILL.md`. The same action runs on every URL in the set, so the choice is paid N times over.
+
+Same fields from every page, in a stable place. Deterministic, so it costs the same on every URL and returns the same thing each run:
+
 ```bash
 curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "X-API-Key: ${GAFFA_API_KEY}" \
@@ -63,21 +67,30 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
       "time_limit": 60000,
       "record_request": true,
       "actions": [
-        {
-          "type": "parse_json",
-          "selector": "main",
-          "data_schema": {
-            "name": "product",
-            "description": "Extract the product title and price",
-            "fields": [
-              { "type": "string", "name": "title", "description": "the product title" },
-              { "type": "string", "name": "price", "description": "the listed price" }
-            ]
-          }
-        }
+        { "type": "generate_markdown", "selector": "main" }
       ]
     }
   }'
+```
+
+Fetch `data.actions[0].output` and parse the markdown into the NDJSON `result` object in the developer's own language. Use `parse_table` instead when the data is a table, or `capture_element` when it is one specific element.
+
+Free-text or interpretive fields, where the value moves around from page to page. Token-priced per URL, so reach for it only when the deterministic path does not fit. Same request as above, swapping the `actions` array for:
+
+```json
+"actions": [
+  {
+    "type": "parse_json",
+    "selector": "main",
+    "data_schema": {
+      "name": "role",
+      "description": "Extract the salary from the job description",
+      "fields": [
+        { "type": "string", "name": "salary", "description": "the salary, wherever it appears in the prose" }
+      ]
+    }
+  }
+]
 ```
 
 The `selector` narrows the input `parse_json` sees. Point it at the region that holds the data (for example `main`, `article`, or a specific container). On a large page, omitting it can make `parse_json` return `action_failed`. If a single selector does not fit every URL in the set, fall back to `input_token_cap` instead.
