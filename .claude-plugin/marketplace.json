@@ -1,0 +1,12 @@
+{
+  "name": "gaffa",
+  "description": "The Gaffa skills and docs MCP, distributed as one plugin.",
+  "owner": { "name": "Impetus Labs" },
+  "plugins": [
+    {
+      "name": "gaffa",
+      "source": ".",
+      "description": "The Gaffa skills plus the Gaffa docs MCP, installed as one plugin."
+    }
+  ]
+}

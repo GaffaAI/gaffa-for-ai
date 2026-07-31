@@ -1,0 +1,6 @@
+{
+  "name": "gaffa",
+  "description": "The Gaffa skills for writing code against the Gaffa browser-automation API, plus the Gaffa docs MCP.",
+  "author": { "name": "Impetus Labs" },
+  "homepage": "https://gaffa.dev"
+}

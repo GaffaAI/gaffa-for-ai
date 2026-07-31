@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "gaffa",
+  "description": "The Gaffa skills for writing code against the Gaffa browser-automation API, plus the Gaffa docs MCP."
+}
