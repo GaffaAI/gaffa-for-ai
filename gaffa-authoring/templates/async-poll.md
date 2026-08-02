@@ -38,5 +38,5 @@ Poll on an interval until the request is terminal. Treat `data.state` of `comple
 ## Notes
 
 - `record_request: true` lets `/gaffa-debug` inspect what happened later, within the plan-tiered retention window (7 days / 30 days / 3 months).
-- `max_cache_age` is a root-level field, not under `settings`. Set it to 0 to force a fresh fetch and bypass the cross-user cache. For a non-zero value, confirm the unit against the live docs.
+- `max_cache_age` is a root-level field, not under `settings`, and is in seconds. Set it to 0 to force a fresh fetch and bypass the cross-user cache.
 - Never place the key in the URL or query string. It belongs only in the `X-API-Key` header.
