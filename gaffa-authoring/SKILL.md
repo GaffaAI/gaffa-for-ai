@@ -23,7 +23,7 @@ The API base URL is `https://api.gaffa.dev`. Every `/v1/...` endpoint is called 
 
 - Endpoints: `POST/GET /v1/browser/requests`, `GET /v1/browser/requests/{id}`, `POST/GET /v1/schemas`, `PUT /v1/schemas/{id}`, `DELETE /v1/schemas/{id}`, `POST/GET /v1/site/map`, `GET /v1/site/map/{id}`. The path is singular `map`, easy to typo as `maps`. Schema update and delete both take the id in the path.
 - Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth`, `block_ads`. `max_cache_age` and `proxy_location` are root-level body fields, not under `settings`.
-- Set `max_cache_age: 0` to disable the cross-user cache. For a non-zero value, confirm the unit against the live docs.
+- `max_cache_age` is in seconds. Set it to 0 to disable the cross-user cache.
 - If `time_limit` is not set, it defaults to your plan's maximum runtime, and it must stay below that maximum. Set it explicitly so the value is visible and intentional.
 - Available actions: `click`, `scroll`, `type`, `wait`, `capture_cookies`, `capture_dom`, `capture_screenshot`, `capture_snapshot`, `download_file`, `generate_markdown`, `generate_simplified_dom`, `parse_json`, `print`, `block_dom_removals`, `capture_element`, `parse_table`. The per-action parameter catalog lives in `references/actions.md`. Read it on demand when you need a specific action's parameters.
 - Proxy locations are residential IPs: `us`, `ie`, `sg`, `fr`. Set `proxy_location` to route through a residential IP in that country. With none set, the request uses a generic datacenter IP.
