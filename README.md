@@ -1,18 +1,17 @@
 # gaffa-for-ai
 
-Five agent skills for building on the [gaffa.dev](https://gaffa.dev) browser-automation REST API, plus the Gaffa docs MCP server, installable as one plugin.
+Four agent skills for building on the [gaffa.dev](https://gaffa.dev) browser-automation REST API, plus the Gaffa docs MCP server, installable as one plugin.
 
 | Skill | Entry | What it does |
 |---|---|---|
 | `gaffa-authoring` | auto-invokes on a gaffa coding prompt | Writes, edits, ports, or reviews code that calls the gaffa API. Loads verified facts and live docs before generating code. |
 | `gaffa-find` | `/gaffa-find` | Iteratively discovers and extracts one piece of information from a target site, given a URL and a plain-language goal. |
 | `gaffa-debug` | `/gaffa-debug` | Diagnoses a failing request or `brq_*` id from its recording and proposes a minimal patch. |
-| `gaffa-bulk` | `/gaffa-bulk` | Runs one extraction across many known URLs with plan-aware concurrency, retries, dedup, and resumable state. |
 | `gaffa-support` | `/gaffa-support` (slash only) | Helps when stuck: tries to resolve the problem first, then packages a redacted local report to email to support. Slash only on Claude Code, Cursor, Codex and Copilot. Antigravity has no way to opt a skill out of automatic selection, so there the agent can still reach for it. |
 
 ## Install as a plugin
 
-This repo is a plugin. Installing it brings in all five skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy and nothing to configure.
+This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy and nothing to configure.
 
 For Claude Code and Codex, point the tool's plugin marketplace at this repository, then install the `gaffa` plugin from it. Cursor and Antigravity install differently and are covered below.
 
@@ -86,4 +85,4 @@ The first real request confirms the setup. A missing or invalid key returns a cl
 
 - Gaffa has no official SDK. The skills emit REST calls in whatever language and library your project already uses.
 - The gaffa docs MCP server makes documentation lookups faster. The plugin install registers it for you, and the copy-install section above covers adding it by hand.
-- The skills spend gaffa credits. `/gaffa-find` and `/gaffa-bulk` enforce tunable cost caps set in each `SKILL.md`. `/gaffa-debug` spends credits only on an optional re-run after explicit confirmation. `/gaffa-support` spends no credits and makes no gaffa API call.
+- The skills spend gaffa credits. `/gaffa-find` enforces a tunable cost cap set in its `SKILL.md`. `/gaffa-debug` spends credits only on an optional re-run after explicit confirmation. `/gaffa-support` spends no credits and makes no gaffa API call.

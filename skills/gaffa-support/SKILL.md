@@ -28,7 +28,7 @@ The API base URL is `https://api.gaffa.dev`. Every `/v1/...` endpoint is called 
 2. Never echo, log, narrate, or persist the value of `GAFFA_API_KEY`. Never put it in a URL or query string.
 3. Before showing a gaffa recording, error trace, or request body to the user, to an LLM judge, or to disk, strip the values of any fields whose names match (case-insensitive, including vendor-prefixed variants like `gaffa_api_key`): `Authorization`, `X-API-Key`, `api_key` (and `apiKey`, `api-key`), `cookie`, `set-cookie`. Replace the value with `<REDACTED>`.
 4. If the runtime value of `GAFFA_API_KEY` appears as a substring anywhere in a payload you are about to show or persist, replace it with `<REDACTED>`. Only enable this substring scrub when the env value is at least 16 characters long and contains both a digit and a letter. Otherwise skip and warn the developer on first invocation that the entropy floor was not met (field-name and prose rules still apply).
-5. Persisted writes (the `/gaffa-find` reasoning log `./.gaffa-find-<timestamp>.log`, the `/gaffa-bulk` state file `./.gaffa-bulk-<run-id>/state.json`, and any other on-disk artifact) go through redaction first, then to a tempfile, then atomic-rename to the final path. A crash mid-write must not leave a plaintext-secrets file on disk.
+5. Persisted writes (the `/gaffa-find` reasoning log `./.gaffa-find-<timestamp>.log`, and any other on-disk artifact) go through redaction first, then to a tempfile, then atomic-rename to the final path. A crash mid-write must not leave a plaintext-secrets file on disk.
 6. If unsure whether a string is a secret, redact it.
 
 ## Doc-fetching strategy
@@ -54,7 +54,7 @@ If both tiers fail, skip the in-session resolution attempt, say the docs are una
 Gather:
 
 - The developer's problem statement.
-- Working-directory artifacts the other skills produce. List the working directory first, then read and include every file that matches: the `/gaffa-find` reasoning log `./.gaffa-find-<timestamp>.log`, the `/gaffa-bulk` state file `./.gaffa-bulk-<run-id>/state.json` and its `./gaffa-bulk-<run-id>.ndjson`, and any generated gaffa script the developer points to or that the conversation produced. Also include any `brq_*` request ids the developer mentions. Do not skip an artifact that is present. List what you found, and let the developer drop any item before the report is written.
+- Working-directory artifacts the other skills produce. List the working directory first, then read and include every file that matches: the `/gaffa-find` reasoning log `./.gaffa-find-<timestamp>.log`, and any generated gaffa script the developer points to or that the conversation produced. Also include any `brq_*` request ids the developer mentions. Do not skip an artifact that is present. List what you found, and let the developer drop any item before the report is written.
 - A drafted problem description composed from the current context: what was attempted, where it broke, the relevant request ids and environment. This is best-effort. You can only summarize what is still in the conversation, and after auto-compaction the original turns may be gone, so the on-disk artifacts are the reliable part of the report.
 
 Then:
@@ -76,7 +76,7 @@ Generated: <timestamp from `date -u +%Y%m%dT%H%M%SZ`>
 <the developer's problem statement, plus the drafted description>
 
 ## Environment
-- Skill involved: <gaffa-authoring | gaffa-find | gaffa-debug | gaffa-bulk | unknown>
+- Skill involved: <gaffa-authoring | gaffa-find | gaffa-debug | unknown>
 - Request ids: <brq_... or none>
 
 ## What was already tried

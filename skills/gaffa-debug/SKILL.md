@@ -35,7 +35,7 @@ General preferences for using the Gaffa API. They capture guidance beyond the AP
 2. Never echo, log, narrate, or persist the value of `GAFFA_API_KEY`. Never put it in a URL or query string.
 3. Before showing a gaffa recording, error trace, or request body to the user, to an LLM judge, or to disk, strip the values of any fields whose names match (case-insensitive, including vendor-prefixed variants like `gaffa_api_key`): `Authorization`, `X-API-Key`, `api_key` (and `apiKey`, `api-key`), `cookie`, `set-cookie`. Replace the value with `<REDACTED>`.
 4. If the runtime value of `GAFFA_API_KEY` appears as a substring anywhere in a payload you are about to show or persist, replace it with `<REDACTED>`. Only enable this substring scrub when the env value is at least 16 characters long and contains both a digit and a letter. Otherwise skip and warn the developer on first invocation that the entropy floor was not met (field-name and prose rules still apply).
-5. Persisted writes (the `/gaffa-find` reasoning log `./.gaffa-find-<timestamp>.log`, the `/gaffa-bulk` state file `./.gaffa-bulk-<run-id>/state.json`, and any other on-disk artifact) go through redaction first, then to a tempfile, then atomic-rename to the final path. A crash mid-write must not leave a plaintext-secrets file on disk.
+5. Persisted writes (the `/gaffa-find` reasoning log `./.gaffa-find-<timestamp>.log`, and any other on-disk artifact) go through redaction first, then to a tempfile, then atomic-rename to the final path. A crash mid-write must not leave a plaintext-secrets file on disk.
 6. If unsure whether a string is a secret, redact it.
 
 ## Doc-fetching strategy
