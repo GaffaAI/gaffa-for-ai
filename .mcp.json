@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "gaffa-docs": {
+      "type": "http",
+      "url": "https://gaffa.dev/docs/~gitbook/mcp"
+    }
+  }
+}

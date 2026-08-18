@@ -1,0 +1,15 @@
+{
+  "name": "gaffa",
+  "interface": {
+    "displayName": "Gaffa"
+  },
+  "plugins": [
+    {
+      "name": "gaffa",
+      "source": {
+        "source": "local",
+        "path": "."
+      }
+    }
+  ]
+}
