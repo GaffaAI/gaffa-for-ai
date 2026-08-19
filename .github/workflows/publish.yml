@@ -1,0 +1,49 @@
+name: Publish
+
+# Publishes the skills to npm as @gaffa-dev/skills on every push to main that
+# touches the published files. The version is whatever package.json says. Bump
+# it in your PR. If it was not bumped, npm rejects the duplicate version and this
+# run fails, which is the reminder to bump. That is deliberate: the CLI reads the
+# published version to decide when to refresh, so a tag that lagged the repo would
+# make it read a stale version. Publishing from main keeps the two in step.
+#
+# A version with a prerelease part (0.1.0-rc.1) goes out under the "next" dist-tag
+# so it never becomes the default install and a bad one can be dropped without
+# affecting anyone on "latest".
+#
+# Auth is npm trusted publishing (OIDC), which also satisfies provenance. The
+# package must exist on npm first, so the very first publish is a manual
+# `npm publish` before this workflow can take over.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "README.md"
+      - "package.json"
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Pick the dist-tag
+        id: tag
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [[ "$version" == *-* ]]; then
+            echo "dist=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "dist=latest" >> "$GITHUB_OUTPUT"
+          fi
+      - run: npm publish --provenance --access public --tag ${{ steps.tag.outputs.dist }}
