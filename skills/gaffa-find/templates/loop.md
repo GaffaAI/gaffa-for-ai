@@ -1,6 +1,7 @@
 # Template: find loop shapes
 
-Language-agnostic shapes for the discovery loop. Adapt to the developer's language.
+Language-agnostic shapes for the discovery loop.
+Adapt to the developer's language.
 
 ## Reconnaissance: site map
 
@@ -12,7 +13,9 @@ curl -sS -X POST https://api.gaffa.dev/v1/site/map \
   -d '{ "url": "https://example.com" }'
 ```
 
-The response carries an id. Read the result with `GET /v1/site/map/{id}`. The path is singular `map`, not `maps`.
+The response carries an id.
+Read the result with `GET /v1/site/map/{id}`.
+The path is singular `map`, not `maps`.
 
 ## Reconnaissance: broad markdown capture
 
@@ -36,7 +39,9 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 
 ## Targeted extraction with the parse_json action
 
-Only reach for this once you have ruled out a deterministic path, per step 3 of the loop in SKILL.md. LLM-backed extraction runs through the `parse_json` action, and there is no `/v1/schemas` action type. Pass an inline `data_schema`, or reference a stored schema with `data_schema_id` after creating it via the `/v1/schemas` endpoint.
+Only reach for this once you have ruled out a deterministic path, per step 3 of the loop in SKILL.md.
+LLM-backed extraction runs through the `parse_json` action, and there is no `/v1/schemas` action type.
+Pass an inline `data_schema`, or reference a stored schema with `data_schema_id` after creating it via the `/v1/schemas` endpoint.
 
 ```bash
 curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
@@ -66,13 +71,20 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   }'
 ```
 
-`parse_json` is token-priced. Gate it against the upper-bound estimate before firing. Give it a `selector` for the region your recon identified, because `parse_json` over the full DOM of a large page can return `action_failed`. If you do not yet know a good selector, your `generate_markdown` recon output often already contains the answer, so read that before spending another extraction request.
+`parse_json` is token-priced.
+Gate it against the upper-bound estimate before firing.
+Give it a `selector` for the region your recon identified, because `parse_json` over the full DOM of a large page can return `action_failed`.
+If you do not yet know a good selector, your `generate_markdown` recon output often already contains the answer, so read that before spending another extraction request.
 
 ## Reasoning log
 
-Append one entry per iteration to `./.gaffa-find-<timestamp>.log`. One entry records the iteration number, the hypothesis, the request id, the candidate value, and the stop-condition decision. Never write a key value into the log.
+Append one entry per iteration to `./.gaffa-find-<timestamp>.log`.
+One entry records the iteration number, the hypothesis, the request id, the candidate value, and the stop-condition decision.
+Never write a key value into the log.
 
-Write it safely. The tempfile must live in the same directory as the final log so the rename is atomic on the same filesystem. A tempfile in `/tmp` and a final log in the working directory are usually on different filesystems, which turns the rename into a non-atomic copy and defeats the crash-safety guarantee.
+Write it safely.
+The tempfile must live in the same directory as the final log so the rename is atomic on the same filesystem.
+A tempfile in `/tmp` and a final log in the working directory are usually on different filesystems, which turns the rename into a non-atomic copy and defeats the crash-safety guarantee.
 
 ```bash
 FINALLOG="./.gaffa-find-$(date +%Y%m%dT%H%M%S).log"
