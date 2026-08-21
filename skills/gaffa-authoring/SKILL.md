@@ -69,19 +69,24 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 
 Pick the action before you look up its parameters.
 `parse_json` is LLM-backed, so it is token-priced and its output can vary between runs.
-Weigh that against a deterministic path first, and tell the developer the trade-off you took so they can overrule it.
+Default to a deterministic path.
+Only reach for `parse_json` when a deterministic path genuinely does not fit, and say why you took it so the developer can overrule it.
+Most scraping tasks (a table, a list of cards, repeating items with a consistent shape) are deterministic and should never use `parse_json`.
 
 - Prefer a deterministic path when the value sits in a stable, well-structured place.
   Cheaper, repeatable, identical every run.
   Good for a price in a known element, a list of cards with a consistent shape, a field in a JSON blob.
   The options, in rough order of how often they fit:
   - `parse_table` with a `selector` for a table, which returns the rows already structured.
-  - `generate_markdown` with a `selector` for the region, then parse the markdown in the developer's own language.
-    Good for repeating cards or list items, and your recon capture is often this already.
-  - `capture_element` with a `selector` for one specific element.
+  - For repeating items (cards, list rows, search results), capture the whole containing region once, then extract every item from that one capture in the script, for example with an HTML parser (BeautifulSoup in Python, Cheerio in JS).
+    Capture the wrapper with `capture_dom` or `capture_element`, or `generate_markdown` with a `selector` when the markdown keeps enough structure.
+    Prefer this over one capture or one request per item: a bare repeated selector like `h1` is unreliable when the page has several, and capturing them one at a time is slower and more brittle.
+  - `capture_element` with a `selector` for a single, unique element.
 - Reach for `parse_json` when the value is buried in free text or moves around from page to page (a salary somewhere inside a job description), or when the task is interpretive rather than a lookup (summarising, classifying).
   That is where the LLM earns its cost.
 - Do not use `parse_json` when the developer needs identical output across runs.
+- Return the structured values the task asked for, not a blob of markdown.
+  Markdown from `generate_markdown` is a capture to parse in the script, not the final result.
 
 ## Preferences
 
