@@ -1,6 +1,12 @@
 # gaffa failure classification
 
-Map recording fields to a likely cause and the smallest fix. Pull the recording with `GET /v1/browser/requests/{id}` and read these fields. All fields live under the top-level `data` object in the response. The field set includes `data.id`, `data.url`, `data.actual_url`, `data.state`, `data.credit_usage`, `data.http_status_code`, `data.from_cache`, `data.started_at`, `data.completed_at`, `data.running_time`, `data.page_load_time`, and `data.actions` (each action carries its result as a URL in `output`). When relevant the response also carries `data.error`, `data.error_reason`, and `data.proxy_location`. With `record_request: true` it also includes `data.video`. A finished request has `data.state` equal to `completed`.
+Map recording fields to a likely cause and the smallest fix.
+Pull the recording with `GET /v1/browser/requests/{id}` and read these fields.
+All fields live under the top-level `data` object in the response.
+The field set includes `data.id`, `data.url`, `data.actual_url`, `data.state`, `data.credit_usage`, `data.http_status_code`, `data.from_cache`, `data.started_at`, `data.completed_at`, `data.running_time`, `data.page_load_time`, and `data.actions` (each action carries its result as a URL in `output`).
+When relevant the response also carries `data.error`, `data.error_reason`, and `data.proxy_location`.
+With `record_request: true` it also includes `data.video`.
+A finished request has `data.state` equal to `completed`.
 
 | Signal in recording | Likely cause | Smallest fix |
 |---|---|---|
@@ -11,10 +17,13 @@ Map recording fields to a likely cause and the smallest fix. Pull the recording 
 | `data.error_reason` matches bot detection or captcha | target-site bot protection | Set `proxy_location` to a residential location (us, ie, sg, fr). If blocked, try another, unless the goal is geo-specific. Not a script change |
 | `data.running_time` much greater than `data.page_load_time` | flaky timing | Add a `wait` action or raise `time_limit` |
 | `data.from_cache: true` when fresh data expected | cross-user cache hit | Set `max_cache_age: 0` or change a parameter to bust the cache key |
+| A `loop` action ends `action_timed_out` | its `timeout` covers all iterations together and ran out | Raise the loop `timeout` or lower the iteration count. Completed iterations keep their outputs |
+| Actions after a `loop` end `action_cancelled` | the loop exited early and cancelled the rest | Set `continue_on_fail: true` on the loop so the actions after it still run |
 | `GET` returns 404 | recording expired past retention | Re-run with `record_request: true`. Retention is 7 days / 30 days / 3 months by plan |
 
 ## Notes
 
 - `max_cache_age` and `proxy_location` are root-level body fields, not under `settings`.
 - Always scrub credential-named fields out of the recording before showing it.
-- Prefer the smallest fix. A rewrite is rarely the right first move.
+- Prefer the smallest fix.
+  A rewrite is rarely the right first move.

@@ -1,8 +1,12 @@
 # Template: re-run with capture for triage
 
-When the original request had no recording, or you need fresh page state to compare against, recommend a re-run with recording plus DOM and screenshot captures. The video lets a human review what happened. The DOM and screenshot let an agent inspect page state directly.
+When the original request had no recording, or you need fresh page state to compare against, recommend a re-run with recording plus DOM and screenshot captures.
+The video lets a human review what happened.
+The DOM and screenshot let an agent inspect page state directly.
 
-The re-run defaults to OFF. Get explicit developer confirmation and show the credit estimate first. The cost counts against `CREDITS_PER_INVOCATION`.
+The re-run defaults to OFF.
+Get explicit developer confirmation and show the credit estimate first.
+The cost counts against `CREDITS_PER_INVOCATION`.
 
 ```bash
 curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
@@ -23,4 +27,5 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   }'
 ```
 
-Append the original failing action after the captures when you want to reproduce the failure with full evidence. Keep `max_cache_age: 0` so the re-run reflects live page state rather than a cache hit.
+Append the original failing action after the captures when you want to reproduce the failure with full evidence.
+Keep `max_cache_age: 0` so the re-run reflects live page state rather than a cache hit.
