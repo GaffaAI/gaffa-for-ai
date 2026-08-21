@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Prove the package packs cleanly on every change, so an allowlist mistake
+      # is caught before merge. npm pack rather than npm publish --dry-run, since
+      # newer npm rejects a publish dry-run whenever package.json holds an already
+      # released version, which is the normal state of a pull request between
+      # releases.
+      - run: npm pack --dry-run
