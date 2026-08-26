@@ -1,0 +1,23 @@
+{
+  "name": "@gaffa-dev/skills",
+  "version": "0.1.0",
+  "description": "The Gaffa skills for writing code against the Gaffa browser-automation API.",
+  "license": "MIT",
+  "author": {
+    "name": "Impetus Labs Ltd",
+    "email": "support@gaffa.dev"
+  },
+  "homepage": "https://gaffa.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GaffaAI/gaffa-for-ai.git"
+  },
+  "files": [
+    "skills",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
