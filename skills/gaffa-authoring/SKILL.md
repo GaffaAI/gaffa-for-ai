@@ -69,19 +69,24 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 
 Pick the action before you look up its parameters.
 `parse_json` is LLM-backed, so it is token-priced and its output can vary between runs.
-Weigh that against a deterministic path first, and tell the developer the trade-off you took so they can overrule it.
+Default to a deterministic path.
+Only reach for `parse_json` when a deterministic path genuinely does not fit, and say why you took it so the developer can overrule it.
+Most scraping tasks (a table, a list of cards, repeating items with a consistent shape) are deterministic and should never use `parse_json`.
 
 - Prefer a deterministic path when the value sits in a stable, well-structured place.
   Cheaper, repeatable, identical every run.
   Good for a price in a known element, a list of cards with a consistent shape, a field in a JSON blob.
   The options, in rough order of how often they fit:
   - `parse_table` with a `selector` for a table, which returns the rows already structured.
-  - `generate_markdown` with a `selector` for the region, then parse the markdown in the developer's own language.
-    Good for repeating cards or list items, and your recon capture is often this already.
-  - `capture_element` with a `selector` for one specific element.
+  - For repeating items (cards, list rows, search results), capture the whole containing region once, then extract every item from that one capture in the script, for example with an HTML parser (BeautifulSoup in Python, Cheerio in JS).
+    Capture the wrapper with `capture_dom` or `capture_element`, or `generate_markdown` with a `selector` when the markdown keeps enough structure.
+    Prefer this over one capture or one request per item: a bare repeated selector like `h1` is unreliable when the page has several, and capturing them one at a time is slower and more brittle.
+  - `capture_element` with a `selector` for a single, unique element.
 - Reach for `parse_json` when the value is buried in free text or moves around from page to page (a salary somewhere inside a job description), or when the task is interpretive rather than a lookup (summarising, classifying).
   That is where the LLM earns its cost.
 - Do not use `parse_json` when the developer needs identical output across runs.
+- Return the structured values the task asked for, not a blob of markdown.
+  Markdown from `generate_markdown` is a capture to parse in the script, not the final result.
 
 ## Preferences
 
@@ -144,14 +149,20 @@ Otherwise retry, or consult https://gaffa.dev/docs manually." If no gaffa MCP wa
 
 Before emitting code, live-fetch the doc section relevant to the developer's request (MCP preferred, HTTP fallback), grounded by the critical facts above.
 Do not emit code before the relevant docs are confirmed or the grounding alone is sufficient and stated as such.
+When the task reads data off a page, fetching the docs is not enough, capture the real page once and read its actual markup before you write the extraction, see "Do not guess the page's markup" under Behavior.
 
 ## Behavior
 
-- Do not guess selectors.
-  When the code needs a selector (for `parse_json` with a `selector`, `capture_element`, `click`, `type`, or `wait`), do not infer it from the URL or from the existing code.
-  First fetch the real page with gaffa using a `generate_simplified_dom` or `capture_dom` capture, read the actual elements, then write the selector from what is really there.
+- Do not guess the page's markup.
+  Whether the code needs a selector (for `parse_json` with a `selector`, `capture_element`, `click`, `type`, or `wait`) or parses a capture in the script itself, do not infer the class names or the element shape from the URL or from the existing code.
+  First fetch the real page with gaffa using a `generate_simplified_dom` or `capture_dom` capture, read the actual elements, then write the selector or the parser from what is really there.
+  Content that is missing from that capture rendered late, so add a `wait` for its selector before the capture and try again rather than parsing an empty page.
+  A `wait` you add is only a precondition, the capture is still the action that reads the page, so keep the capture's own parameters such as a `custom_id` or a `selector` on the capture action, not on the `wait`.
   If that fetch fails with a connectivity error, the page is unreachable, usually because egress to `api.gaffa.dev` is blocked, so point the developer at the egress setup instead of guessing.
   If you genuinely cannot fetch the page, mark the selector as unverified and tell the developer to confirm it rather than presenting a guess as correct.
+- Reconnaissance informs the script, it does not change what the request asked for.
+  When the request names an artifact, raw HTML to keep and parse, a screenshot, a table, deliver that.
+  A `generate_markdown` you ran while looking around is not a substitute for the raw HTML the request wants kept, do not swap it in just because it is already to hand.
 - Gaffa requests work best when targeting a single URL with actions performed on that page.
   Pagination and other repeat-the-same-steps flows stay inside that one request with the `loop` action, capture first, then the click that moves on, see the catalog.
   What remains unsupported is session state across separate requests, every request starts a fresh session, so surface that up front when the developer's request needs it.
