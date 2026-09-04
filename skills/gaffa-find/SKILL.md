@@ -1,12 +1,13 @@
 ---
 name: gaffa-find
-description: Use when the user wants to find or extract a specific piece of information from a target website given only a URL and a plain-language goal but has no gaffa script yet. Iteratively writes and refines a gaffa script through reconnaissance, extraction, and validation, then stops in a clear terminal state.
+description: Use when the user wants to find, scrape, or extract a specific piece of information from a target website given only a URL and a plain-language goal but has no script yet, whether or not gaffa is mentioned. Invoke it even when the URL or the goal is still missing, and ask for them inside the skill, never before invoking. Iteratively writes and refines a gaffa script through reconnaissance, extraction, and validation, then stops in a clear terminal state.
 ---
 
 # gaffa find
 
 Given a target URL and a natural-language information goal, write and refine a gaffa script through reconnaissance, hypothesis, extraction, validation, and refinement, then stop with a clear terminal state.
 Prevents premature commitment to a wrong selector and silent acceptance of empty or wrong results.
+Invoked without the URL or the goal, ask for what is missing first, then run the loop.
 
 ## Cost guardrail caps
 
@@ -106,7 +107,7 @@ If both tiers fail mid-flight (at least one iteration done), do not discard prog
 
 ## First action
 
-Fire a reconnaissance request, not a doc load.
+Once the URL and goal are in hand, fire a reconnaissance request, not a doc load.
 The reconnaissance (site map or broad markdown capture) tells you where the answer is likely to live before you commit to a selector.
 
 ## Terminal states
