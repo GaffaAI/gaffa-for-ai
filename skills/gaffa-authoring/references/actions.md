@@ -186,6 +186,11 @@ Write field descriptions as instructions, the expected format and what to do whe
 A list of items is an `array` field with nested `fields` describing the item shape.
 It reads online PDFs too, with `max_pages` capping what is sent to the model.
 
+Compute a deterministic field in the script, not in the schema.
+A value that follows a fixed rule from text already on the page (a word-contains flag, a first word, an arithmetic result) belongs in your code, because the extraction will sometimes let the page's subject override the rule.
+Verified on the gaffa.dev blog: asking `parse_json` to flag which post titles contain "gaffa" marked every post true on roughly one run in five, likely because the blog is about gaffa, even where the title did not contain the word.
+When such a field has to stay in the schema, word it as a literal character check and name the trap, that the site and topic are irrelevant and what the usual answer is.
+
 ### parse_table
 - `selector` (string, required): selector identifying the table.
 - `timeout` (integer, optional): max wait for the table.
