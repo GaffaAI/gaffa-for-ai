@@ -31,7 +31,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 The response is wrapped in a top-level `data` object, so the id is at `data.id`.
 The 60000 ms above (60 seconds) is an example value, not the default.
 If you omit `time_limit` it defaults to your plan's maximum runtime and must stay under that maximum.
-Set it explicitly and raise it toward your plan max if the job needs longer (Starter 1 min, Startup 2 min, Growth 5 min).
+Set it explicitly and raise it toward your plan max if the job needs longer (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min).
 
 ## Poll
 
