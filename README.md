@@ -7,7 +7,7 @@ Four agent skills for building on the [gaffa.dev](https://gaffa.dev) browser-aut
 | `gaffa-authoring` | auto-invokes on a gaffa coding prompt | Writes, edits, ports, or reviews code that calls the gaffa API. Loads verified facts and live docs before generating code. |
 | `gaffa-find` | `/gaffa-find` | Iteratively discovers and extracts one piece of information from a target site, given a URL and a plain-language goal. |
 | `gaffa-debug` | `/gaffa-debug` | Diagnoses a failing request or `brq_*` id from its recording and proposes a minimal patch. |
-| `gaffa-support` | `/gaffa-support` (slash only) | Helps when stuck: tries to resolve the problem first, then packages a redacted local report to email to support. Slash only on Claude Code, Cursor, Codex and Copilot. Antigravity has no way to opt a skill out of automatic selection, so there the agent can still reach for it. |
+| `gaffa-support` | `/gaffa-support` (slash only) | Helps when stuck: tries to resolve the problem first, then packages a redacted local report to email to support. Slash only on Claude Code, Cursor, Codex, Copilot and Pi. Pi honors `disable-model-invocation: true`, so the skill auto-hides and is reached via `/skill:gaffa-support`. Antigravity has no way to opt a skill out of automatic selection, so there the agent can still reach for it. |
 
 ## Install as a plugin
 
@@ -56,6 +56,7 @@ Each skill is a self-contained folder that follows the open Agent Skills standar
 | Cursor (2.4+) | `.agents/skills/` or `.cursor/skills/` | `~/.agents/skills/` or `~/.cursor/skills/` |
 | Codex CLI | `.agents/skills/` | `~/.agents/skills/` |
 | GitHub Copilot | `.agents/skills/` | `~/.agents/skills/` |
+| Pi | `.pi/skills/` | `~/.pi/agent/skills/` |
 | Antigravity | `.agents/skills/` | see below |
 
 Antigravity's personal directory depends on which surface you run. Its own docs give `~/.gemini/config/skills/` for Antigravity 2.0, `~/.gemini/antigravity/skills/` for the IDE and `~/.gemini/antigravity-cli/skills/` for the CLI. The project directory is the same for all three, so prefer that one.
