@@ -21,7 +21,8 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
    Returns an id.
    Poll `GET /v1/browser/requests/{id}`.
    Opt into sync with `"async": false`.
-3. Max runtime is plan-tiered (1 / 2 / 5 min) for both sync and async.
+3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
+   Sync requests (`"async": false`) are capped at 60 seconds on every plan.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -29,7 +30,7 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
    Other actions are deterministically priced.
 5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
    Without one, the skill can only suggest re-running the failing request with recording enabled.
-   Plan-tiered retention applies (7 days / 30 days / 3 months).
+   The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
 
 The API base URL is `https://api.gaffa.dev`.
 Every `/v1/...` endpoint is called on that host.
@@ -171,10 +172,10 @@ When the task reads data off a page, fetching the docs is not enough, capture th
   Pagination and other repeat-the-same-steps flows stay inside that one request with the `loop` action, capture first, then the click that moves on, see the catalog.
   What remains unsupported is session state across separate requests, every request starts a fresh session, so surface that up front when the developer's request needs it.
 - Always set `settings.time_limit` explicitly in generated code, based on what the job is expected to take.
-  You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Starter 1 min, Startup 2 min, Growth 5 min).
+  You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min).
 - For any request the developer may later want to debug or audit, set `settings.record_request: true` in the emitted code so `/gaffa-debug` has a recording to inspect within the retention window.
 - Default to the async pattern (POST then poll the returned id).
-  Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the plan max.
+  Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the 60-second sync cap.
 - Read the template that matches the task and adapt it to the developer's language and library.
   They are starting points, not literal output.
   - `templates/async-poll.md` for the POST-then-poll pattern.

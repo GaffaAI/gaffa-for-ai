@@ -25,7 +25,8 @@ The skill runs entirely on the developer's machine: it reads the gaffa docs but 
    Returns an id.
    Poll `GET /v1/browser/requests/{id}`.
    Opt into sync with `"async": false`.
-3. Max runtime is plan-tiered (1 / 2 / 5 min) for both sync and async.
+3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
+   Sync requests (`"async": false`) are capped at 60 seconds on every plan.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -33,7 +34,7 @@ The skill runs entirely on the developer's machine: it reads the gaffa docs but 
    Other actions are deterministically priced.
 5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
    Without one, the skill can only suggest re-running the failing request with recording enabled.
-   Plan-tiered retention applies (7 days / 30 days / 3 months).
+   The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
 
 The API base URL is `https://api.gaffa.dev`.
 Every `/v1/...` endpoint is called on that host.
