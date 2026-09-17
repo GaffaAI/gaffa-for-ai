@@ -72,7 +72,7 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 Pick the action before you look up its parameters.
 `parse_json` is LLM-backed, so it is token-priced and its output can vary between runs.
 Default to a deterministic path.
-Only reach for `parse_json` when a deterministic path genuinely does not fit, and say why you took it so the developer can overrule it.
+Only reach for `parse_json` when a deterministic path genuinely does not fit, or the developer explicitly asks for it, and say why you took it so the developer can overrule it.
 Most scraping tasks (a table, a list of cards, repeating items with a consistent shape) are deterministic and should never use `parse_json`.
 
 - Prefer a deterministic path when the value sits in a stable, well-structured place.
@@ -86,7 +86,7 @@ Most scraping tasks (a table, a list of cards, repeating items with a consistent
   - `capture_element` with a `selector` for a single, unique element.
 - Reach for `parse_json` when the value is buried in free text or moves around from page to page (a salary somewhere inside a job description), or when the task is interpretive rather than a lookup (summarising, classifying).
   That is where the LLM earns its cost.
-- Do not use `parse_json` when the developer needs identical output across runs.
+- Do not use `parse_json` when the developer needs identical output across runs. If they ask for it anyway, use it and say plainly that its output can vary between runs.
 - Keep a deterministic per-item rule out of the schema.
   When a field is a fixed rule applied to text already being extracted (a word-contains flag, a first word, an arithmetic result), extract the raw text and compute the field in the script.
   The extraction can let the page's subject override the rule.

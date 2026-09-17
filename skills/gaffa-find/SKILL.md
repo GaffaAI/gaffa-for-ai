@@ -135,7 +135,7 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
    Choose the action before you look up its parameters, and say which you chose and why.
    When the value sits in a stable, well-structured place, take the deterministic path: `parse_table` with a `selector` for a table, `generate_markdown` with a `selector` for a region you then parse in the developer's own language, or `capture_element` with a `selector` for one element.
    Cheaper, repeatable, identical every run, and your `generate_markdown` recon output often already shows whether the shape is stable enough.
-   Only when the value is buried in free text or moves from page to page (a salary somewhere in a job description), or the goal is interpretive (summarising, classifying), use the `parse_json` action (inline `data_schema`, or `data_schema_id` for a reused shape), which handles ambiguity a selector cannot but is token-priced and can vary between runs.
+   Only when the value is buried in free text or moves from page to page (a salary somewhere in a job description), the goal is interpretive (summarising, classifying), or the developer explicitly asks for it, use the `parse_json` action (inline `data_schema`, or `data_schema_id` for a reused shape), which handles ambiguity a selector cannot but is token-priced and can vary between runs.
 4. Check the stop condition: does the value clearly fit the goal, and does any supplied validator pass?
 5. Refine the hypothesis or finish, returning the answer plus a re-runnable script.
 6. Stop on success, on budget exhaustion (any of the three caps or `MAX_ITERATIONS`), or on an unrecoverable error.
