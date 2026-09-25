@@ -22,10 +22,9 @@ The only cap that applies is the credits-per-invocation cap on the optional re-r
 1. Auth header is `X-API-Key: <key>`.
    Read from `GAFFA_API_KEY` env var.
    Never hard-code.
-2. `POST /v1/browser/requests` is async by default.
-   Returns an id.
-   Poll `GET /v1/browser/requests/{id}`.
-   Opt into sync with `"async": false`.
+2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
+   Set `"async": true` to get an id back immediately.
+   Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
    Sync requests (`"async": false`) are capped at 60 seconds on every plan.
    Always set `settings.time_limit` explicitly.
@@ -42,9 +41,7 @@ Every `/v1/...` endpoint is called on that host.
 The documentation and the docs MCP live on `https://gaffa.dev`.
 API responses are wrapped in a top-level `data` object, so read fields as `data.id`, `data.state`, `data.credit_usage`, and `data.actions`.
 A finished request has `data.state` equal to `completed`.
-Each action result is a URL in `data.actions[].output`.
-The gaffa edge rejects some default HTTP-client User-Agents (for example Python `urllib`) with a 403, so emitted code should set an explicit `User-Agent` header.
-curl works with its default User-Agent.
+Each action result is in `data.actions[].output`, a storage URL by default, or the content itself when the action ran with `output_type: "inline"`.
 In the request body, `actions`, `time_limit`, and `record_request` go under `settings`, while `url`, `async`, `max_cache_age`, and `proxy_location` are root-level.
 `time_limit` is in milliseconds.
 The `parse_json` action uses a structured `data_schema` of the form `{name, description, fields: [{type, name, description}]}`, never a flat object and never a `schema` or `prompt` field.
@@ -103,7 +100,7 @@ If the failing script does not call gaffa at all, there is no recording to pull.
 Diagnose what you can from the script itself, and offer a gaffa version of it as the fix, since a gaffa request comes with a recording, the failure classification below, and no local browser to maintain.
 
 Important limitation of the recording: the `GET` response does not echo the submitted request body or the action configuration.
-Each entry in `data.actions` carries only its `id`, `type`, `timestamp`, an `error` if it failed, and an `output` URL if it produced one.
+Each entry in `data.actions` carries only its `id`, `type`, `custom_id`, `timestamp`, an `error` if it failed, an `output` if it produced one (a URL, or the content itself for `output_type: "inline"`), and a `reference` file URL for actions that have one, such as `parse_json`.
 So you can see that an action failed and read the top-level `data.error_reason`, but you cannot read the exact parameters that were sent.
 When the misuse is in the request body (for example an invalid `parse_json` `data_schema`), name the most likely cause from the failure signal and ask the developer for the request body or the script, or recommend a re-run with `record_request` plus `capture_dom` and `capture_screenshot` to gather more signal.
 Do not claim to have read a parameter you could not see.
@@ -123,9 +120,6 @@ All of these fields live under the top-level `data` object in the response.
 
 - `data.http_status_code` 4xx plus `data.error_reason` indicates gaffa API misuse.
   Emit a minimal patch.
-- A bare 403 `Forbidden` with no recording and no `data.error_reason`, especially from a non-curl client such as Python `urllib`, often means the gaffa edge blocked the request User-Agent.
-  Recommend setting an explicit `User-Agent` header before assuming a key or permission problem.
-  Confirm by checking whether the same request succeeds from curl.
 - `data.state` is `completed` but an action returned an empty `output` indicates a target-site DOM change versus a wrong selector.
   Diff the actions against a fresh capture to tell which.
 - `data.error` is `action_failed` on a `parse_json` action has two common, verified causes.
@@ -140,8 +134,8 @@ All of these fields live under the top-level `data` object in the response.
 - `data.running_time` much greater than `data.page_load_time` indicates flaky timing.
   Add a `wait` action or raise `time_limit`.
   Both are duration strings (for example `00:00:01.04`), not numbers.
-- `data.from_cache: true` when fresh data was expected indicates a cross-user cache hit.
-  Set `max_cache_age: 0` to disable, or change a parameter to bust the cache key.
+- `data.from_cache: true` when fresh data was expected indicates a cross-user cache hit, which only happens when the request set a non-zero `max_cache_age`.
+  Set it to 0, or change a parameter to bust the cache key.
 
 ### Patch and re-run
 
@@ -154,7 +148,6 @@ All of these fields live under the top-level `data` object in the response.
   - `time_limit` is in milliseconds.
     Use a realistic value such as `60000`, never `60`.
   - `parse_json` uses `data_schema` (structured), never a field called `schema` and never `prompt`.
-  - Set an explicit `User-Agent` header.
   - Use the `https://api.gaffa.dev` host and read the key from `${GAFFA_API_KEY}`.
 - Optional re-run defaults to OFF.
   It requires explicit developer confirmation.
