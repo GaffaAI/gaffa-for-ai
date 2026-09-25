@@ -27,10 +27,9 @@ The skill enforces the caps below.
 1. Auth header is `X-API-Key: <key>`.
    Read from `GAFFA_API_KEY` env var.
    Never hard-code.
-2. `POST /v1/browser/requests` is async by default.
-   Returns an id.
-   Poll `GET /v1/browser/requests/{id}`.
-   Opt into sync with `"async": false`.
+2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
+   Set `"async": true` to get an id back immediately.
+   Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
    Sync requests (`"async": false`) are capped at 60 seconds on every plan.
    Always set `settings.time_limit` explicitly.
@@ -47,9 +46,7 @@ Every `/v1/...` endpoint is called on that host.
 The documentation and the docs MCP live on `https://gaffa.dev`.
 API responses are wrapped in a top-level `data` object, so read fields as `data.id`, `data.state`, `data.credit_usage`, and `data.actions`.
 A finished request has `data.state` equal to `completed`.
-Each action result is a URL in `data.actions[].output`.
-The gaffa edge rejects some default HTTP-client User-Agents (for example Python `urllib`) with a 403, so emitted code should set an explicit `User-Agent` header.
-curl works with its default User-Agent.
+Each action result is in `data.actions[].output`, a storage URL by default, or the content itself when the action ran with `output_type: "inline"`.
 In the request body, `actions`, `time_limit`, and `record_request` go under `settings`, while `url`, `async`, `max_cache_age`, and `proxy_location` are root-level.
 `time_limit` is in milliseconds.
 Each entry in `settings.actions` is an object keyed by `type`, for example `{"type": "generate_markdown"}` or `{"type": "capture_element", "selector": "h1"}`.
@@ -61,7 +58,7 @@ LLM-backed extraction runs through the `parse_json` action, with an inline `data
 `parse_json` is not the only way to get data off a page, see step 3 of the loop.
 On a large content-rich page, `parse_json` over the full DOM can fail with `action_failed` (verified on Wikipedia), so narrow the input with a `selector` for the region that holds the data, or set `input_token_cap`.
 
-Reconnaissance uses `POST /v1/site/map` (singular `map`, GET the id to read results) or a broad markdown capture (`generate_markdown`).
+Reconnaissance uses `POST /v1/site/map` (singular `map`, the POST waits for the crawl and returns the links) or a broad markdown capture (`generate_markdown`).
 
 ## Preferences
 
