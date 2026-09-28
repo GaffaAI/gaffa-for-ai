@@ -52,6 +52,7 @@ After a click that loads new content, `wait` for that content before capturing.
   Defaults to the page body.
 
 For infinite scroll, set `wait_time` so the scroll follows the growing page, and cap it with `max_scroll_time`.
+Match `scroll_speed` to the site: `instant` when nothing throttles, `slow` when fast scrolling gets throttled, and `instant` with a large `interval` when the limits are strict.
 Hitting `max_scroll_time` stops the scroll without failing, later actions still run.
 Scroll a modal or side panel by passing its `selector`, scrolling the body will not move it.
 If rows vanish while scrolling past them, put `block_dom_removals` before the scroll.
@@ -67,6 +68,7 @@ Typing does not submit, follow with a `click` on the submit button and a `wait` 
 Target the input element itself, not its wrapper.
 Inside attribute selectors use single quotes (`input[name='email']`) so the selector needs no escaping in the JSON string.
 One `type` action per field, and checkboxes, radios and dropdowns take a `click`, not a `type`.
+Close a cookie banner or modal with a `click` first, an overlay blocks the field even when the selector is right.
 
 ### wait
 - `time` (integer, optional): milliseconds to wait.
@@ -174,13 +176,13 @@ The documented rate for `gpt-4o-mini` is 1 credit per 20,000 input tokens and 1 
   This is a sibling parameter of `parse_json`, not a field inside `data_schema`.
 - `model` (string, optional): the parsing model.
   Defaults to `gpt-4o-mini`, which is also the only accepted value at the moment.
-- `input_token_cap` (integer, optional): max source tokens.
+- `input_token_cap` (integer, optional): max source tokens, longer input is cut off at the cap.
   Default 1000000.
 - `selector` (string, optional): selector for a content subset.
 - `output_type` (string, optional): one of `file`, `inline`.
   Default `file`.
 - `max_pages` (integer, optional): PDF page limit.
-  No default documented.
+  Default: no limit.
 
 Write field descriptions as instructions, the expected format and what to do when the value is missing, not as labels.
 A list of items is an `array` field with nested `fields` describing the item shape.

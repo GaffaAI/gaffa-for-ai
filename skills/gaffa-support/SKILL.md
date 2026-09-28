@@ -21,10 +21,9 @@ The skill runs entirely on the developer's machine: it reads the gaffa docs but 
 1. Auth header is `X-API-Key: <key>`.
    Read from `GAFFA_API_KEY` env var.
    Never hard-code.
-2. `POST /v1/browser/requests` is async by default.
-   Returns an id.
-   Poll `GET /v1/browser/requests/{id}`.
-   Opt into sync with `"async": false`.
+2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
+   Set `"async": true` to get an id back immediately.
+   Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
    Sync requests (`"async": false`) are capped at 60 seconds on every plan.
    Always set `settings.time_limit` explicitly.
@@ -41,9 +40,7 @@ Every `/v1/...` endpoint is called on that host.
 The documentation and the docs MCP live on `https://gaffa.dev`.
 API responses are wrapped in a top-level `data` object, so read fields as `data.id`, `data.state`, `data.credit_usage`, and `data.actions`.
 A finished request has `data.state` equal to `completed`.
-Each action result is a URL in `data.actions[].output`.
-The gaffa edge rejects some default HTTP-client User-Agents (for example Python `urllib`) with a 403, so emitted code should set an explicit `User-Agent` header.
-curl works with its default User-Agent.
+Each action result is in `data.actions[].output`, a storage URL by default, or the content itself when the action ran with `output_type: "inline"`.
 In the request body, `actions`, `time_limit`, and `record_request` go under `settings`, while `url`, `async`, `max_cache_age`, and `proxy_location` are root-level.
 `time_limit` is in milliseconds.
 The `parse_json` action uses a structured `data_schema` of the form `{name, description, fields: [{type, name, description}]}`, never a flat object and never a `schema` or `prompt` field.

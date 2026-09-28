@@ -13,8 +13,8 @@ curl -sS -X POST https://api.gaffa.dev/v1/site/map \
   -d '{ "url": "https://example.com" }'
 ```
 
-The response carries an id.
-Read the result with `GET /v1/site/map/{id}`.
+The POST waits for the crawl and returns the links directly: `data.links` is the list of URLs and `data.link_count` their number.
+It takes a root-level `max_cache_age` in seconds, like a browser request.
 The path is singular `map`, not `maps`.
 
 ## Reconnaissance: broad markdown capture
