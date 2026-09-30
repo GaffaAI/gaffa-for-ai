@@ -26,6 +26,13 @@ The full URL is deliberate. Claude Code clones the `owner/repo` shorthand over S
 
 Scopes are `user` (the default), `project`, which writes `.claude/settings.json` in the project you are working in and is shared with collaborators, and `local`, which writes `.claude/settings.local.json` in that same project and is not shared.
 
+On Codex it is the same two steps, and `add` is the install command:
+
+```
+codex plugin marketplace add https://github.com/GaffaAI/gaffa-for-ai
+codex plugin add gaffa@gaffa
+```
+
 Two things worth knowing:
 
 - Cursor has no command-line install. The plugin manifest is here and the plugin loads once Cursor has it, but adding it is a click in the app rather than something you can script.
