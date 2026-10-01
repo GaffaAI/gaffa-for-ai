@@ -17,10 +17,9 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
 1. Auth header is `X-API-Key: <key>`.
    Read from `GAFFA_API_KEY` env var.
    Never hard-code.
-2. `POST /v1/browser/requests` is async by default.
-   Returns an id.
-   Poll `GET /v1/browser/requests/{id}`.
-   Opt into sync with `"async": false`.
+2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
+   Set `"async": true` to get an id back immediately.
+   Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
    Sync requests (`"async": false`) are capped at 60 seconds on every plan.
    Always set `settings.time_limit` explicitly.
@@ -37,9 +36,7 @@ Every `/v1/...` endpoint is called on that host.
 The documentation and the docs MCP live on `https://gaffa.dev`.
 API responses are wrapped in a top-level `data` object, so read fields as `data.id`, `data.state`, `data.credit_usage`, and `data.actions`.
 A finished request has `data.state` equal to `completed`.
-Each action result is a URL in `data.actions[].output`.
-The gaffa edge rejects some default HTTP-client User-Agents (for example Python `urllib`) with a 403, so emitted code should set an explicit `User-Agent` header.
-curl works with its default User-Agent.
+Each action result is in `data.actions[].output`, a storage URL by default, or the content itself when the action ran with `output_type: "inline"`.
 In the request body, `actions`, `time_limit`, and `record_request` go under `settings`, while `url`, `async`, `max_cache_age`, and `proxy_location` are root-level.
 `time_limit` is in milliseconds.
 The `parse_json` action uses a structured `data_schema` of the form `{name, description, fields: [{type, name, description}]}`, never a flat object and never a `schema` or `prompt` field.
@@ -54,11 +51,12 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 - Endpoints: `POST/GET /v1/browser/requests`, `GET /v1/browser/requests/{id}`, `POST/GET /v1/schemas`, `PUT /v1/schemas/{id}`, `DELETE /v1/schemas/{id}`, `POST/GET /v1/site/map`, `GET /v1/site/map/{id}`.
   The path is singular `map`, easy to typo as `maps`.
   Schema update and delete both take the id in the path.
-- Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth`, `block_ads`.
+- Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth` (in MB, 0 blocks all images and videos, unset means no limit), `block_ads`, and `log_redirects`, which adds a `redirects` list of every URL the browser went through to the response.
   `max_cache_age` and `proxy_location` are root-level body fields, not under `settings`.
-- `max_cache_age` is in seconds.
-  Set it to 0 to disable the cross-user cache.
-- If `time_limit` is not set, it defaults to your plan's maximum runtime, and it must stay below that maximum.
+- `max_cache_age` is in seconds and defaults to 0, so the cross-user cache is only used when you set it.
+- A non-200 response carries `{"error": {"type", "id", "code", "message"}}`, except 401, which is the plain text `Invalid API Key`, so do not JSON-parse an error body blindly.
+- If `time_limit` is not set, it defaults to 60000 ms on every plan, it does not grow with the plan.
+  An explicit value above your plan's maximum is rejected with a 400 `time_limit_too_long` before the request runs.
   Set it explicitly so the value is visible and intentional.
 - Available actions: `click`, `scroll`, `type`, `wait`, `capture_cookies`, `capture_dom`, `capture_screenshot`, `capture_snapshot`, `download_file`, `generate_markdown`, `generate_simplified_dom`, `parse_json`, `print`, `block_dom_removals`, `capture_element`, `parse_table`, and `loop`, which repeats nested actions inside one request.
   The per-action parameter catalog lives in `references/actions.md`.
@@ -172,9 +170,9 @@ When the task reads data off a page, fetching the docs is not enough, capture th
   Pagination and other repeat-the-same-steps flows stay inside that one request with the `loop` action, capture first, then the click that moves on, see the catalog.
   What remains unsupported is session state across separate requests, every request starts a fresh session, so surface that up front when the developer's request needs it.
 - Always set `settings.time_limit` explicitly in generated code, based on what the job is expected to take.
-  You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min).
+  You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min async).
 - For any request the developer may later want to debug or audit, set `settings.record_request: true` in the emitted code so `/gaffa-debug` has a recording to inspect within the retention window.
-- Default to the async pattern (POST then poll the returned id).
+- Default to the async pattern (`"async": true`, then poll the returned id).
   Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the 60-second sync cap.
 - Read the template that matches the task and adapt it to the developer's language and library.
   They are starting points, not literal output.
