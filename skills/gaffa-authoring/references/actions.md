@@ -58,6 +58,21 @@ Scroll a modal or side panel by passing its `selector`, scrolling the body will 
 If rows vanish while scrolling past them, put `block_dom_removals` before the scroll.
 There is no scrolling back up, so order the actions to need one downward pass only.
 
+### select
+- `selector` (string, required): selector for the `<select>` element.
+- `values` (array, required): the options to choose, one object per option with `value` or `label`.
+  `value` matches the option's HTML `value` attribute, `label` matches its visible text and is only used when `value` is absent or empty.
+  When both are set, `value` is used and `label` is ignored.
+- `timeout` (integer, optional): max wait for the element.
+  Default 5000 ms.
+
+Only a native `<select>` works, a custom dropdown built from `div` or `input[role='combobox']` takes a `click`.
+Target the `<select>` itself, not a wrapper.
+For a multi-select, every item in `values` is applied to the same `<select>`.
+An item that matches no option is skipped, the action succeeds when at least one item matched and fails only when none did.
+The browser does not update the `selected` attribute, so `capture_dom` and `capture_element` look unchanged after a successful select, confirm with `capture_screenshot`.
+If the dropdown loads after the page, `wait` for it first.
+
 ### type
 - `selector` (string, required): input field selector.
 - `text` (string, required): text to enter.
@@ -67,7 +82,7 @@ There is no scrolling back up, so order the actions to need one downward pass on
 Typing does not submit, follow with a `click` on the submit button and a `wait` for what comes next.
 Target the input element itself, not its wrapper.
 Inside attribute selectors use single quotes (`input[name='email']`) so the selector needs no escaping in the JSON string.
-One `type` action per field, and checkboxes, radios and dropdowns take a `click`, not a `type`.
+One `type` action per field, checkboxes, radios and custom dropdowns take a `click`, a native `<select>` takes `select`.
 Close a cookie banner or modal with a `click` first, an overlay blocks the field even when the selector is right.
 
 ### wait
@@ -132,8 +147,10 @@ Prefer it over `capture_dom` when you know where the content lives.
 - `timeout` (integer, optional): max download wait.
   Default 5000 ms.
 
-Only the documented file types download: .pdf, .jpg, .png, .gif, .bmp, .webp, .svg, .tiff, .tif, .img.
+Only the documented file types download: .pdf, .jpg, .jpeg, .png, .gif, .bmp, .webp, .svg, .tiff, .tif, .img.
 Each action returns the most recent download and consumes it, so emit one `download_file` per expected file, each with a `custom_id`.
+Never emit more `download_file` actions than there are files, the extra ones wait out their timeout and fail.
+The stored file keeps its original name.
 The default 5000 ms suits small images, documents want more, the docs suggest 20000 ms as a starting point.
 A file behind a link is a `click` first, then the download.
 
