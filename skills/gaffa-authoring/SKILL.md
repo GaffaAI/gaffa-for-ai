@@ -58,7 +58,7 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 - If `time_limit` is not set, it defaults to 60000 ms on every plan, it does not grow with the plan.
   An explicit value above your plan's maximum is rejected with a 400 `time_limit_too_long` before the request runs.
   Set it explicitly so the value is visible and intentional.
-- Available actions: `click`, `scroll`, `type`, `wait`, `capture_cookies`, `capture_dom`, `capture_screenshot`, `capture_snapshot`, `download_file`, `generate_markdown`, `generate_simplified_dom`, `parse_json`, `print`, `block_dom_removals`, `capture_element`, `parse_table`, and `loop`, which repeats nested actions inside one request.
+- Available actions: `click`, `scroll`, `select`, `type`, `wait`, `capture_cookies`, `capture_dom`, `capture_screenshot`, `capture_snapshot`, `download_file`, `generate_markdown`, `generate_simplified_dom`, `parse_json`, `print`, `block_dom_removals`, `capture_element`, `parse_table`, and `loop`, which repeats nested actions inside one request.
   The per-action parameter catalog lives in `references/actions.md`.
   Read it on demand when you need a specific action's parameters.
 - Proxy locations are residential IPs: `us`, `ie`, `sg`, `fr`.
@@ -157,7 +157,7 @@ When the task reads data off a page, fetching the docs is not enough, capture th
 ## Behavior
 
 - Do not guess the page's markup.
-  Whether the code needs a selector (for `parse_json` with a `selector`, `capture_element`, `click`, `type`, or `wait`) or parses a capture in the script itself, do not infer the class names or the element shape from the URL or from the existing code.
+  Whether the code needs a selector (for `parse_json` with a `selector`, `capture_element`, `click`, `select`, `type`, or `wait`) or parses a capture in the script itself, do not infer the class names or the element shape from the URL or from the existing code.
   First fetch the real page with gaffa using a `generate_simplified_dom` or `capture_dom` capture, read the actual elements, then write the selector or the parser from what is really there.
   Content that is missing from that capture rendered late, so add a `wait` for its selector before the capture and try again rather than parsing an empty page.
   A `wait` you add is only a precondition, the capture is still the action that reads the page, so keep the capture's own parameters such as a `custom_id` or a `selector` on the capture action, not on the `wait`.
