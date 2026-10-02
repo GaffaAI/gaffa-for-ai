@@ -33,7 +33,7 @@ The skill runs entirely on the developer's machine: it reads the gaffa docs but 
    Other actions are deterministically priced.
 5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
    Without one, the skill can only suggest re-running the failing request with recording enabled.
-   The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
+   The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
 
 The API base URL is `https://api.gaffa.dev`.
 Every `/v1/...` endpoint is called on that host.
