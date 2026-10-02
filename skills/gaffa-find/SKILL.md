@@ -37,8 +37,9 @@ The skill enforces the caps below.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
    Check the live docs for the current model and token rates.
    Other actions are deterministically priced.
-5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
-   Without one, the skill can only suggest re-running the failing request with recording enabled.
+5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra.
+   The find loop is reconnaissance, so it records every browser request it makes and `/gaffa-debug` has a recording to inspect a failed attempt.
+   Leave it off in the re-runnable script the skill hands back.
    The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
 
 The API base URL is `https://api.gaffa.dev`.
@@ -151,7 +152,9 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
 - Per-iteration reasoning is logged to `./.gaffa-find-<timestamp>.log` in the developer's working directory, written through the redaction-then-tempfile-then-atomic-rename path.
   Create it before the first request and append after every iteration, a run without the log is incomplete.
   See `templates/loop.md` for the rationale and shape.
-- Always set `settings.time_limit` explicitly and `settings.record_request: true` so a failing attempt can be triaged with `/gaffa-debug`.
+- Always set `settings.time_limit` explicitly.
+- Set `settings.record_request: true` on each browser request in the loop, they are reconnaissance, so a failing attempt can be triaged with `/gaffa-debug`.
+  Drop it from the re-runnable script you hand back.
 - Do not invent an answer.
   If the goal is not found within budget, stop with `needs-human-review` and say so plainly.
 - Returns both the answer and the working, re-runnable gaffa script.

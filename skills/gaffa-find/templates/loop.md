@@ -37,6 +37,8 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   }'
 ```
 
+The loop keeps `record_request: true` on its reconnaissance requests, drop it from the re-runnable script you hand back.
+
 ## Targeted extraction with the parse_json action
 
 Only reach for this once you have ruled out a deterministic path, per step 3 of the loop in SKILL.md.
@@ -70,6 +72,8 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
     }
   }'
 ```
+
+The loop keeps `record_request: true` on this request too, drop it from the re-runnable script you hand back.
 
 `parse_json` is token-priced.
 Gate it against the upper-bound estimate before firing.
