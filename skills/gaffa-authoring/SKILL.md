@@ -29,7 +29,7 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
    Other actions are deterministically priced.
 5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
    Without one, the skill can only suggest re-running the failing request with recording enabled.
-   The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
+   The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
 
 The API base URL is `https://api.gaffa.dev`.
 Every `/v1/...` endpoint is called on that host.
@@ -51,19 +51,20 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 - Endpoints: `POST/GET /v1/browser/requests`, `GET /v1/browser/requests/{id}`, `POST/GET /v1/schemas`, `PUT /v1/schemas/{id}`, `DELETE /v1/schemas/{id}`, `POST/GET /v1/site/map`, `GET /v1/site/map/{id}`.
   The path is singular `map`, easy to typo as `maps`.
   Schema update and delete both take the id in the path.
-- Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth` (in MB, 0 blocks all images and videos, unset means no limit), `block_ads`, and `log_redirects`, which adds a `redirects` list of every URL the browser went through to the response.
+- Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth` (in MB, 0 blocks all images and videos, unset means no limit), `block_ads` (beta), and `log_redirects`, which adds a `redirects` list of every URL the browser went through to the response.
   `max_cache_age` and `proxy_location` are root-level body fields, not under `settings`.
 - `max_cache_age` is in seconds and defaults to 0, so the cross-user cache is only used when you set it.
 - A non-200 response carries `{"error": {"type", "id", "code", "message"}}`, except 401, which is the plain text `Invalid API Key`, so do not JSON-parse an error body blindly.
 - If `time_limit` is not set, it defaults to 60000 ms on every plan, it does not grow with the plan.
   An explicit value above your plan's maximum is rejected with a 400 `time_limit_too_long` before the request runs.
   Set it explicitly so the value is visible and intentional.
-- Available actions: `click`, `scroll`, `select`, `type`, `wait`, `capture_cookies`, `capture_dom`, `capture_screenshot`, `capture_snapshot`, `download_file`, `generate_markdown`, `generate_simplified_dom`, `parse_json`, `print`, `block_dom_removals`, `capture_element`, `parse_table`, and `loop`, which repeats nested actions inside one request.
+- Available actions: `click`, `scroll`, `select`, `type`, `wait`, `capture_cookies`, `capture_dom`, `capture_screenshot`, `capture_snapshot`, `download_file`, `generate_markdown`, `generate_simplified_dom`, `parse_json`, `print`, `block_dom_removals`, `capture_element`, `parse_table`, and `loop` (beta), which repeats nested actions inside one request.
   The per-action parameter catalog lives in `references/actions.md`.
   Read it on demand when you need a specific action's parameters.
 - Proxy locations are residential IPs: `us`, `ie`, `sg`, `fr`.
   Set `proxy_location` to route through a residential IP in that country.
   With none set, the request uses a generic datacenter IP.
+  Proxies need a paid account.
 
 ### Choosing an extraction action
 
@@ -172,6 +173,7 @@ When the task reads data off a page, fetching the docs is not enough, capture th
 - Always set `settings.time_limit` explicitly in generated code, based on what the job is expected to take.
   You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min async).
 - For any request the developer may later want to debug or audit, set `settings.record_request: true` in the emitted code so `/gaffa-debug` has a recording to inspect within the retention window.
+  Recording doubles the browser-time charge, say so in a code comment.
 - Default to the async pattern (`"async": true`, then poll the returned id).
   Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the 60-second sync cap.
 - Read the template that matches the task and adapt it to the developer's language and library.

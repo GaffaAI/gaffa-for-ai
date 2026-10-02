@@ -225,6 +225,7 @@ There is no merged-cell handling, take `capture_dom` plus your own parser for th
 
 ### loop
 Repeats its nested actions in order, so pagination or repeated interaction fits in one request.
+Marked as beta in the August 2026 changelog.
 - `actions` (action[], required): the actions each iteration runs, any type except another `loop`.
 - `iterations` (integer, optional): fixed number of iterations, 1 to 100.
 - `max_iterations` (integer, optional): upper bound on iterations when the count is open.
@@ -239,7 +240,7 @@ Repeats its nested actions in order, so pagination or repeated interaction fits 
 The basic pagination shape is capture first, then the click to the next page, so the last page is still captured and the click failing on it is what ends the loop.
 Size `timeout` for the whole loop, the 20 second default rarely covers many pages.
 A loop that hits its timeout fails with `action_timed_out`, and the finished iterations keep their outputs.
-Give the nested actions `custom_id`s, every iteration reports its outputs and the ids tell them apart.
+The response lists every iteration's nested entries in execution order under the loop entry's `actions` array, with `iterations` on the loop entry, so give the nested actions `custom_id`s to tell them apart.
 Dismiss cookie banners before the loop with a `continue_on_fail: true` click, and `wait` for the pagination control before the loop starts.
 Set `continue_on_fail: true` on the loop itself when actions follow it, otherwise an early exit cancels them with `action_cancelled`.
 
