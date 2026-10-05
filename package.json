@@ -1,6 +1,6 @@
 {
   "name": "@gaffa-dev/skills",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "The Gaffa skills for writing code against the Gaffa browser-automation API.",
   "license": "MIT",
   "author": {

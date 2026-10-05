@@ -34,7 +34,7 @@ The only cap that applies is the credits-per-invocation cap on the optional re-r
    Other actions are deterministically priced.
 5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
    Without one, the skill can only suggest re-running the failing request with recording enabled.
-   The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
+   The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
 
 The API base URL is `https://api.gaffa.dev`.
 Every `/v1/...` endpoint is called on that host.
@@ -101,6 +101,7 @@ Diagnose what you can from the script itself, and offer a gaffa version of it as
 
 Important limitation of the recording: the `GET` response does not echo the submitted request body or the action configuration.
 Each entry in `data.actions` carries only its `id`, `type`, `custom_id`, `timestamp`, an `error` if it failed, an `output` if it produced one (a URL, or the content itself for `output_type: "inline"`), and a `reference` file URL for actions that have one, such as `parse_json`.
+A `loop` entry also carries `iterations` and an `actions` array holding every iteration's nested entries in execution order, their outputs sit there, not at the top level.
 So you can see that an action failed and read the top-level `data.error_reason`, but you cannot read the exact parameters that were sent.
 When the misuse is in the request body (for example an invalid `parse_json` `data_schema`), name the most likely cause from the failure signal and ask the developer for the request body or the script, or recommend a re-run with `record_request` plus `capture_dom` and `capture_screenshot` to gather more signal.
 Do not claim to have read a parameter you could not see.
@@ -130,6 +131,7 @@ All of these fields live under the top-level `data` object in the response.
   Classify that as a wrong action rather than a `parse_json` to be tuned.
 - `data.error_reason` matching bot detection or captcha indicates target-site bot protection.
   Suggest setting `proxy_location` to a residential location (us, ie, sg, fr), not script changes.
+  Proxies need a paid account.
   If one location is blocked, try another supported location, unless the goal is geo-specific and switching would return irrelevant results.
 - `data.running_time` much greater than `data.page_load_time` indicates flaky timing.
   Add a `wait` action or raise `time_limit`.

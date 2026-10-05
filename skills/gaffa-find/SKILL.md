@@ -40,7 +40,7 @@ The skill enforces the caps below.
 5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra.
    The find loop is reconnaissance, so it records every browser request it makes and `/gaffa-debug` has a recording to inspect a failed attempt.
    Leave it off in the re-runnable script the skill hands back.
-   The plans' general data retention applies (7 days / 30 days / 3 months), a recording-specific window is not documented.
+   The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
 
 The API base URL is `https://api.gaffa.dev`.
 Every `/v1/...` endpoint is called on that host.
@@ -146,7 +146,7 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
 - Pre-flight credit estimate before each request.
   Pause and confirm when the invocation total would breach `CREDITS_PER_INVOCATION`.
   For token-priced actions (`parse_json`, `/v1/schemas`) gate against the upper bound of the estimate, not the midpoint.
-  For `parse_json`, fetch current rates from https://gaffa.dev/docs/credits-and-pricing.md once per invocation, reuse that cached rate for later requests, and add a 50% safety margin on output tokens.
+  For `parse_json`, fetch current rates from https://gaffa.dev/docs/features/browser-requests/actions/parse-json.md once per invocation, reuse that cached rate for later requests, and add a 50% safety margin on output tokens.
   For `/v1/schemas`, pin a conservative ceiling at the worst current `parse_json` rate applied to the captured page size in tokens, tell the developer the ceiling is a guess, and ask for confirmation regardless of headroom.
 - `--reconnaissance-only` returns the site map or landing capture without entering the extraction loop.
 - Per-iteration reasoning is logged to `./.gaffa-find-<timestamp>.log` in the developer's working directory, written through the redaction-then-tempfile-then-atomic-rename path.
@@ -154,6 +154,7 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
   See `templates/loop.md` for the rationale and shape.
 - Always set `settings.time_limit` explicitly.
 - Set `settings.record_request: true` on each browser request in the loop, they are reconnaissance, so a failing attempt can be triaged with `/gaffa-debug`.
+  Recording doubles the browser-time charge, count that in the pre-flight estimate.
   Drop it from the re-runnable script you hand back.
 - Do not invent an answer.
   If the goal is not found within budget, stop with `needs-human-review` and say so plainly.

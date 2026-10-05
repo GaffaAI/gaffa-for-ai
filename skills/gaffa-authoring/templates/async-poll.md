@@ -44,8 +44,8 @@ curl -sS https://api.gaffa.dev/v1/browser/requests/REQUEST_ID \
 ```
 
 Poll on an interval until the request is terminal.
-The documented states are `pending`, `running`, `completed`, and `failed`.
-Treat `data.state` of `completed` as success, and `failed` or a non-empty `data.error` as failure.
+The parameters page documents `pending` while the request runs and `completed` once it is finished, the API reference filter also names `failed` and `queued`.
+A failed request comes back `completed` with `data.error` set, so treat `completed` with an empty `data.error` as success, and `failed` or any non-empty `data.error` as failure.
 Keep polling on any other state rather than hard-coding the in-progress names, so a name you did not anticipate is not misread as a failure.
 Always bound the loop with a deadline so it cannot spin forever, for example `time_limit` plus a margin for queueing and network.
 On reaching the deadline, stop and report a timeout rather than continuing to poll.
