@@ -43,6 +43,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "User-Agent: gaffa-skill/1.0" \
   -d '{
     "url": "https://example.com",
+    "proxy_location": "us",
     "max_cache_age": 0,
     "settings": {
       "time_limit": 60000,

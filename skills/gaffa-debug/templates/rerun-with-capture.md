@@ -15,6 +15,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "User-Agent: gaffa-skill/1.0" \
   -d '{
     "url": "URL_FROM_FAILING_REQUEST",
+    "proxy_location": "us",
     "max_cache_age": 0,
     "settings": {
       "time_limit": 60000,
@@ -28,4 +29,5 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 ```
 
 Append the original failing action after the captures when you want to reproduce the failure with full evidence.
+Keep the original request's `proxy_location` when it had one, `us` is the fallback when it did not.
 Keep `max_cache_age: 0` so the re-run reflects live page state rather than a cache hit.

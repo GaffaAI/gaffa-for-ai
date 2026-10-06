@@ -148,6 +148,7 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
   For token-priced actions (`parse_json`, `/v1/schemas`) gate against the upper bound of the estimate, not the midpoint.
   For `parse_json`, fetch current rates from https://gaffa.dev/docs/features/browser-requests/actions/parse-json.md once per invocation, reuse that cached rate for later requests, and add a 50% safety margin on output tokens.
   For `/v1/schemas`, pin a conservative ceiling at the worst current `parse_json` rate applied to the captured page size in tokens, tell the developer the ceiling is a guess, and ask for confirmation regardless of headroom.
+  Count the proxy bandwidth too: requests set `proxy_location` by default and the bandwidth is billed separately, so add a rough allowance for the page weight and say it is a guess.
 - `--reconnaissance-only` returns the site map or landing capture without entering the extraction loop.
 - Per-iteration reasoning is logged to `./.gaffa-find-<timestamp>.log` in the developer's working directory, written through the redaction-then-tempfile-then-atomic-rename path.
   Create it before the first request and append after every iteration, a run without the log is incomplete.
@@ -156,6 +157,9 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
 - Set `settings.record_request: true` on each browser request in the loop, they are reconnaissance, so a failing attempt can be triaged with `/gaffa-debug`.
   Recording doubles the browser-time charge, count that in the pre-flight estimate.
   Drop it from the re-runnable script you hand back.
+- Set `proxy_location` on every browser request, the loop and the re-runnable script alike, `us` unless the target is clearly in another supported country or the developer asks for one.
+  With none set, the request goes out from a datacenter IP, which sites block more readily.
+  If a request fails with a proxy or access error, retry it once without `proxy_location`, some sites are restricted on the proxy network.
 - Do not invent an answer.
   If the goal is not found within budget, stop with `needs-human-review` and say so plainly.
 - Returns both the answer and the working, re-runnable gaffa script.

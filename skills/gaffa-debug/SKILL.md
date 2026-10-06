@@ -130,9 +130,9 @@ All of these fields live under the top-level `data` object in the response.
   Where the data sits in a stable, well-structured place, say a table or a known element, the third option is to stop using `parse_json` for it: `parse_table` or `capture_element` cannot fail this way, cost the same every run, and are the better patch.
   Classify that as a wrong action rather than a `parse_json` to be tuned.
 - `data.error_reason` matching bot detection or captcha indicates target-site bot protection.
-  Suggest setting `proxy_location` to a residential location (us, ie, sg, fr), not script changes.
+  If the recording shows no `proxy_location` on the request, suggest adding one with `us` as the default, not a script change.
   Proxies need a paid account.
-  If one location is blocked, try another supported location, unless the goal is geo-specific and switching would return irrelevant results.
+  If one location is blocked, try another supported location (ie, sg, fr), unless the goal is geo-specific and switching would return irrelevant results.
 - `data.running_time` much greater than `data.page_load_time` indicates flaky timing.
   Add a `wait` action or raise `time_limit`.
   Both are duration strings (for example `00:00:01.04`), not numbers.
