@@ -11,6 +11,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "User-Agent: gaffa-skill/1.0" \
   -d '{
     "url": "https://example.com",
+    "proxy_location": "us",
     "async": false,
     "max_cache_age": 0,
     "settings": {
@@ -28,4 +29,4 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 - Sync calls are capped at 60 seconds on every plan, the plan-tiered max runtime (1 / 2 / 5 min) is for async requests.
   If the job can exceed 60 seconds, prefer the async-poll template instead.
 - Set the HTTP client read timeout above `time_limit` so the client does not abort a request that is still within its allowed runtime.
-- Everything else (auth, `time_limit`, `record_request`, `max_cache_age`) behaves the same as the async pattern.
+- Everything else (auth, `time_limit`, `record_request`, `max_cache_age`, `proxy_location`) behaves the same as the async pattern.

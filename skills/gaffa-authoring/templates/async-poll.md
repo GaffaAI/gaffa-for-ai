@@ -18,6 +18,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "User-Agent: gaffa-skill/1.0" \
   -d '{
     "url": "https://example.com",
+    "proxy_location": "us",
     "async": true,
     "max_cache_age": 0,
     "settings": {
@@ -56,6 +57,8 @@ If you set `record_request: true`, the response also carries `data.video`.
 ## Notes
 
 - `record_request: true` lets `/gaffa-debug` inspect what happened later, within the plan-tiered retention window (7 days / 30 days / 3 months).
+- `proxy_location` is set to `us`, so the request goes out from a residential IP in that country instead of the datacenter IP it uses when the field is unset.
+  Another supported location (`ie`, `sg`, `fr`) changes the country, and proxy bandwidth is billed.
 - `max_cache_age` is a root-level field, not under `settings`, and is in seconds.
   It defaults to 0, so the cross-user cache is only used when you set it.
 - Never place the key in the URL or query string.

@@ -64,6 +64,7 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 - Proxy locations are residential IPs: `us`, `ie`, `sg`, `fr`.
   Set `proxy_location` to route through a residential IP in that country.
   With none set, the request uses a generic datacenter IP.
+  Generated requests set `us` by default.
   Proxies need a paid account.
 
 ### Choosing an extraction action
@@ -174,6 +175,10 @@ When the task reads data off a page, fetching the docs is not enough, capture th
   You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min async).
 - For any request the developer may later want to debug or audit, set `settings.record_request: true` in the emitted code so `/gaffa-debug` has a recording to inspect within the retention window.
   Recording doubles the browser-time charge, say so in a code comment.
+- Set `proxy_location` on every emitted browser request, `us` unless the target is clearly in another supported country or the developer asks for one.
+  With none set, the request goes out from a datacenter IP, which sites block more readily, so the residential IP is the safer default.
+  Proxies need a paid account and their bandwidth is billed, so note the charge in a code comment.
+  If a request fails with a proxy or access error, retry it once without `proxy_location`, some sites are restricted on the proxy network.
 - Default to the async pattern (`"async": true`, then poll the returned id).
   Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the 60-second sync cap.
 - Read the template that matches the task and adapt it to the developer's language and library.

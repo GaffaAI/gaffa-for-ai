@@ -16,6 +16,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/site/map \
 The POST waits for the crawl and returns the links directly: `data.links` is the list of URLs and `data.link_count` their number.
 It takes a root-level `max_cache_age` in seconds, like a browser request.
 The path is singular `map`, not `maps`.
+The map body takes no `proxy_location`, the crawl already goes out through residential proxies.
 
 ## Reconnaissance: broad markdown capture
 
@@ -26,6 +27,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "User-Agent: gaffa-skill/1.0" \
   -d '{
     "url": "https://example.com",
+    "proxy_location": "us",
     "max_cache_age": 0,
     "settings": {
       "time_limit": 60000,
@@ -38,6 +40,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 ```
 
 The loop keeps `record_request: true` on its reconnaissance requests, drop it from the re-runnable script you hand back.
+`proxy_location` stays in the re-runnable script, it is there to help the request succeed rather than for the reconnaissance.
 
 ## Targeted extraction with the parse_json action
 
@@ -52,6 +55,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
   -H "User-Agent: gaffa-skill/1.0" \
   -d '{
     "url": "https://example.com/leadership",
+    "proxy_location": "us",
     "max_cache_age": 0,
     "settings": {
       "time_limit": 60000,
@@ -74,6 +78,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 ```
 
 The loop keeps `record_request: true` on this request too, drop it from the re-runnable script you hand back.
+`proxy_location` stays, for the same reason as above.
 
 `parse_json` is token-priced.
 Gate it against the upper-bound estimate before firing.
