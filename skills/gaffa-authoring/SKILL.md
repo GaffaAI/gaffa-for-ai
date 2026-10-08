@@ -27,8 +27,8 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
    Check the live docs for the current model and token rates.
    Other actions are deterministically priced.
-5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
-   Without one, the skill can only suggest re-running the failing request with recording enabled.
+5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra, so leave them off in shipped code.
+   `/gaffa-debug` needs one, without it the skill can only suggest re-running the failing request with recording enabled.
    The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
 
 The API base URL is `https://api.gaffa.dev`.
@@ -173,7 +173,8 @@ When the task reads data off a page, fetching the docs is not enough, capture th
   What remains unsupported is session state across separate requests, every request starts a fresh session, so surface that up front when the developer's request needs it.
 - Always set `settings.time_limit` explicitly in generated code, based on what the job is expected to take.
   You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min async).
-- For any request the developer may later want to debug or audit, set `settings.record_request: true` in the emitted code so `/gaffa-debug` has a recording to inspect within the retention window.
+- Leave `settings.record_request` off in emitted code.
+  Set it to true only while exploring a site or when the developer is debugging a failing request, so `/gaffa-debug` has a recording to inspect within the retention window, and drop it again once the request works.
   Recording doubles the browser-time charge, say so in a code comment.
 - Set `proxy_location` on every emitted browser request, `us` unless the target is clearly in another supported country or the developer asks for one.
   With none set, the request goes out from a datacenter IP, which sites block more readily, so the residential IP is the safer default.

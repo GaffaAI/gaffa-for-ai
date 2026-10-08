@@ -47,7 +47,6 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
     "max_cache_age": 0,
     "settings": {
       "time_limit": 60000,
-      "record_request": true,
       "actions": [
         {
           "type": "parse_json",

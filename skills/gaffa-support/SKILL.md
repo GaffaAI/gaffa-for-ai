@@ -31,8 +31,8 @@ The skill runs entirely on the developer's machine: it reads the gaffa docs but 
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
    Check the live docs for the current model and token rates.
    Other actions are deterministically priced.
-5. Request recordings (`settings.record_request: true`) are strongly recommended for `/gaffa-debug`.
-   Without one, the skill can only suggest re-running the failing request with recording enabled.
+5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra, so leave them off in shipped code.
+   `/gaffa-debug` needs one, without it the skill can only suggest re-running the failing request with recording enabled.
    The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
 
 The API base URL is `https://api.gaffa.dev`.
