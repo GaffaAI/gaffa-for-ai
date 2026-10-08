@@ -11,9 +11,9 @@ Four agent skills for building on the [gaffa.dev](https://gaffa.dev) browser-aut
 
 ## Install as a plugin
 
-This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy and nothing to configure.
+This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy and nothing to configure. Pi is the one exception.
 
-For Claude Code and Codex, point the tool's plugin marketplace at this repository, then install the `gaffa` plugin from it. Cursor and Antigravity install differently and are covered below.
+For Claude Code, Codex and GitHub Copilot, point the tool's plugin marketplace at this repository, then install the `gaffa` plugin from it. Cursor, Antigravity and Pi install differently and are covered below.
 
 On Claude Code that is two commands:
 
@@ -33,10 +33,17 @@ codex plugin marketplace add https://github.com/GaffaAI/gaffa-for-ai
 codex plugin add gaffa@gaffa
 ```
 
+On GitHub Copilot the marketplace takes the `owner/repo` shorthand:
+
+```
+copilot plugin marketplace add GaffaAI/gaffa-for-ai
+copilot plugin install gaffa@gaffa
+```
+
 Two things worth knowing:
 
 - Cursor has no command-line install. The plugin manifest is here and the plugin loads once Cursor has it, but adding it is a click in the app rather than something you can script.
-- Updating differs by tool. Claude Code refreshes marketplaces in the background by default and updates an installed plugin with `/plugin update`, where `/plugin marketplace update` only re-pulls the catalog. The others need asking: `codex plugin marketplace upgrade`, `copilot plugin update`, `cursor-agent plugin marketplace update`.
+- Updating differs by tool. Claude Code refreshes marketplaces in the background by default and updates an installed plugin with `/plugin update`, where `/plugin marketplace update` only re-pulls the catalog. The others need asking: `codex plugin marketplace upgrade`, `copilot plugin update`, `cursor-agent plugin marketplace update`, `pi update https://github.com/GaffaAI/gaffa-for-ai`.
 
 Antigravity has no marketplace concept, so it installs by putting the plugin where it looks. Clone this repo into its plugins directory and restart:
 
@@ -51,6 +58,18 @@ For one project rather than the whole machine, clone into `.agents/plugins/gaffa
 ```
 git clone --depth 1 https://github.com/GaffaAI/gaffa-for-ai .agents/plugins/gaffa
 rm -rf .agents/plugins/gaffa/.git
+```
+
+Pi has no marketplace either, but it installs a package straight from a git URL:
+
+```
+pi install https://github.com/GaffaAI/gaffa-for-ai
+```
+
+That brings the skills but not the docs MCP server. One more command registers it:
+
+```
+pi mcp add gaffa-docs --url https://gaffa.dev/docs/~gitbook/mcp
 ```
 
 ## Install by copying
@@ -92,5 +111,5 @@ The first real request confirms the setup. A missing or invalid key returns a cl
 ## Notes
 
 - Gaffa has no official SDK. The skills emit REST calls in whatever language and library your project already uses.
-- The gaffa docs MCP server makes documentation lookups faster. The plugin install registers it for you, and the copy-install section above covers adding it by hand.
+- The gaffa docs MCP server makes documentation lookups faster. The plugin install registers it for you, except on Pi, and the install sections above cover adding it by hand.
 - The skills spend gaffa credits. `/gaffa-find` enforces a tunable cost cap set in its `SKILL.md`. `/gaffa-debug` spends credits only on an optional re-run after explicit confirmation. `/gaffa-support` spends no credits and makes no gaffa API call.
