@@ -17,10 +17,11 @@ Actions run in the order they are submitted.
 ## Selectors
 
 Every `selector` parameter below runs through Playwright's selector engine, not plain CSS.
-All standard CSS works, and so do Playwright's extensions, text selectors such as `:has-text('foo')` and `:text('foo')`, `:visible`, and XPath.
+All standard CSS works, and so do Playwright's extensions: text selectors such as `:has-text('foo')`, `:text('foo')`, `:text-is('foo')` and `:text-matches('regex', 'flags')`, plus `:visible`, `:nth-match(selector, n)`, `:light()`, `>>` for chaining selector types together, and XPath.
 Pseudo-elements such as `::before` cannot be targeted, there is no real element to return.
 Elements inside same-origin iframes are reached with a plain selector, no frame targeting needed.
 Cross-origin iframes are currently out of reach, a selector cannot match inside them.
+Gaffa also looks inside open shadow roots of web components automatically, so elements inside them are selectable without anything special.
 Full reference: `/docs/features/browser-requests/selectors`.
 
 ## Actions without outputs
@@ -84,15 +85,18 @@ Target the input element itself, not its wrapper.
 Inside attribute selectors use single quotes (`input[name='email']`) so the selector needs no escaping in the JSON string.
 One `type` action per field, checkboxes, radios and custom dropdowns take a `click`, a native `<select>` takes `select`.
 Close a cookie banner or modal with a `click` first, an overlay blocks the field even when the selector is right.
+Gaffa types character by character with real keyboard events rather than pasting the whole string, which suits sites that watch for unusual input, though it won't defeat every detection method.
 
 ### wait
 - `time` (integer, optional): milliseconds to wait.
 - `selector` (string, optional): selector to wait for.
 - `timeout` (integer, optional): max wait for the selector.
   Default 5000 ms.
+- You must provide either `time` or `selector`.
 
 Prefer a `selector` wait over a fixed `time`, it moves on as soon as the element appears.
-Never set both, `time` silently wins and the selector is ignored.
+Never set both.
+When both are set, `time` takes priority and the `timeout` is ignored, the browser moves on once `time` runs out whether or not the `selector` appeared.
 No `wait` is needed before `click`, `capture_element`, or `parse_table`, they wait for their own selector.
 Set `continue_on_fail: true` when the awaited element may never appear.
 
@@ -118,7 +122,8 @@ Treat the output as credentials.
 
 Do not send the output to an LLM, `generate_simplified_dom` and `generate_markdown` carry nearly the same information in far fewer tokens.
 There is no `selector` here, capturing part of the page means `capture_element`.
-If content is missing from the capture, the page was not done loading, `wait` for a selector of the expected content first.
+`capture_dom` returns the main page only, with iframes and web components appearing as empty tags, so missing content may be inside a same-origin iframe or a web component and still reachable with a selector.
+If content is missing from the capture, the page may also have not finished loading, `wait` for a selector of the expected content first.
 
 ### capture_screenshot
 - `size` (string, optional): one of `view`, `fullscreen`.
@@ -131,7 +136,9 @@ There is no single-element screenshot, use `capture_element` for the HTML or scr
 ### capture_snapshot
 - No parameters beyond the universal ones are documented.
 
-The saved file has JavaScript switched off, so open tabs and expand sections with `click` and `wait` before capturing.
+Produces a single HTML file that loads offline, with all images loaded and embedded and all CSS files embedded.
+JavaScript is switched off in the saved file, so open tabs and expand sections with `click` and `wait` before capturing.
+Snapshots are large, since every image and stylesheet is embedded in the file.
 Reach for it when the page will be read or searched later, `capture_screenshot` only shows it, `print` makes a paper-style PDF.
 
 ### capture_element
@@ -160,6 +167,7 @@ A file behind a link is a `click` first, then the download.
   Default `file`.
 
 The default choice for LLM-bound page content, and `output_type: "inline"` returns it in the response, which suits agents and short pages.
+Gaffa exports GitHub-flavoured Markdown with comments removed and unknown tags ignored.
 Pass a `selector` such as `main` or `article` to skip navigation and footers.
 Tables survive as Markdown tables, but code that processes a table wants `parse_table` instead.
 
@@ -225,21 +233,29 @@ There is no merged-cell handling, take `capture_dom` plus your own parser for th
 
 ### loop
 Repeats its nested actions in order, so pagination or repeated interaction fits in one request.
-Marked as beta in the August 2026 changelog.
+Available on all plans but still in beta, so its behaviour and parameters are subject to change.
 - `actions` (action[], required): the actions each iteration runs, any type except another `loop`.
+  Nesting a `loop` inside another `loop` is rejected before the request runs with an `invalid_action_param` error.
+  For two-level pagination, such as a list of categories each with its own paged results, send a separate request per outer item, each with a single loop inside it.
 - `iterations` (integer, optional): fixed number of iterations, 1 to 100.
 - `max_iterations` (integer, optional): upper bound on iterations when the count is open.
   Default 10, range 1 to 1000.
+  Also acts as the iteration count when `iterations` is not set, so sending neither runs the loop up to 10 times.
   With both set, the lower value wins.
 - `timeout` (integer, optional): max duration of the whole loop, all iterations together, not each one.
   Default 20000 ms.
+  The whole request is still capped by your plan's `time_limit`, so a loop `timeout` above that buys no extra time.
 - `stop_on_fail` (boolean, optional): end the loop when a nested action fails.
   Default `true`.
   A nested action with `continue_on_fail: true` does not end it.
+- `continue_on_fail` (boolean, optional): whether the loop itself is reported as a success when it exits early.
+  Default `false`.
+  Set `false` to pass the failure up to the parent action list, or `true` to treat an early exit as a clean finish.
 
 The basic pagination shape is capture first, then the click to the next page, so the last page is still captured and the click failing on it is what ends the loop.
 Size `timeout` for the whole loop, the 20 second default rarely covers many pages.
-A loop that hits its timeout fails with `action_timed_out`, and the finished iterations keep their outputs.
+A loop that hits its timeout fails with `action_timed_out`, and the finished iterations keep their outputs, along with any actions completed during the final incomplete pass.
+The `iterations` count only includes passes that ran to completion.
 The response lists every iteration's nested entries in execution order under the loop entry's `actions` array, with `iterations` on the loop entry, so give the nested actions `custom_id`s to tell them apart.
 Dismiss cookie banners before the loop with a `continue_on_fail: true` click, and `wait` for the pagination control before the loop starts.
 Set `continue_on_fail: true` on the loop itself when actions follow it, otherwise an early exit cancels them with `action_cancelled`.

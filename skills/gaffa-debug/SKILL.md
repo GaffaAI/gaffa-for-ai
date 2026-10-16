@@ -25,13 +25,17 @@ The only cap that applies is the credits-per-invocation cap on the optional re-r
 2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
    Set `"async": true` to get an id back immediately.
    Poll `GET /v1/browser/requests/{id}` for the result.
-3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
-   Sync requests (`"async": false`) are capped at 60 seconds on every plan.
+3. Max runtime is plan-tiered for both sync and async requests.
+   Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
    Check the live docs for the current model and token rates.
    Other actions are deterministically priced.
+   A browser request is billed at 1 credit per 30 seconds of runtime, doubled when screen recording is on.
+   Proxy bandwidth is billed at 750 credits per GB for any request that sets `proxy_location`.
+   A mapping request (`/v1/site/map`) costs 2 credits when it builds the map, 1 when it serves a cached map ranked by a `search_query`, and 0 for a cached map without one, or for a partial failure.
 5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra, so leave them off in shipped code.
    `/gaffa-debug` needs one, without it the skill can only suggest re-running the failing request with recording enabled.
    The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
@@ -83,7 +87,7 @@ Resolve documentation queries in two tiers, in order.
    `searchDocumentation` (param `query`) for "how do I do X".
    `getPage` (param `url`) to fetch one page by URL.
 2. Fallback: live HTTP fetch.
-   `?ask=` against the docs for narrow lookups, `https://gaffa.dev/docs/llms.txt` for breadth.
+   `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth.
    Per-call timeout of 5 seconds.
 
 MCP availability probe, once per session, cached, total budget 10 seconds: JSON-RPC `initialize`, then the mandatory `notifications/initialized` notification, then `tools/list` confirming `searchDocumentation` and `getPage` (or at least one).
@@ -108,8 +112,8 @@ Do not claim to have read a parameter you could not see.
 
 ## Behavior
 
-- If `GET /v1/browser/requests/{id}` returns 404, surface the plan-tiered retention reality (Starter 7 days, Startup 30 days, Growth 3 months).
-  The recording has likely expired.
+- If `GET /v1/browser/requests/{id}` returns the request with `data.data_deleted: true`, surface the plan-tiered retention reality (Starter 7 days, Startup 30 days, Growth 3 months).
+  The recording, if there was one, has expired.
 - If `settings.record_request` was not set on the original request, surface that no recording was captured, so a re-run is needed to inspect what happened.
 - A recommended re-run sets `record_request: true` and adds `capture_dom` and `capture_screenshot` actions.
 - All recording payloads have credential fields scrubbed per the credential-hygiene rules before being shown to the developer, to Claude, or to any LLM judge.

@@ -1,6 +1,6 @@
 # Template: synchronous request
 
-Use only when the developer wants a blocking call and the expected runtime is well under the 60-second sync cap.
+Use only when the developer wants a blocking call and the expected runtime is well under the plan's sync cap.
 Set `"async": false` in the request body.
 The response comes back on the same call, so there is no id to poll.
 
@@ -25,7 +25,8 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 
 ## Notes
 
-- Sync calls are capped at 60 seconds on every plan, the plan-tiered max runtime (1 / 2 / 5 min) is for async requests.
-  If the job can exceed 60 seconds, prefer the async-poll template instead.
+- The sync cap is plan-tiered: 60,000 ms (60s) on Pay As You Go and Starter, 120,000 ms (2 min) on Startup and Growth (Growth sync is clamped from its 300,000 ms async cap).
+  The async maximums differ: 60,000 ms (60s) on Pay As You Go and Starter, 120,000 ms (2 min) on Startup, 300,000 ms (5 min) on Growth.
+  If the job can exceed the sync cap, prefer the async-poll template instead.
 - Set the HTTP client read timeout above `time_limit` so the client does not abort a request that is still within its allowed runtime.
 - Everything else (auth, `time_limit`, `record_request`, `max_cache_age`, `proxy_location`) behaves the same as the async pattern.

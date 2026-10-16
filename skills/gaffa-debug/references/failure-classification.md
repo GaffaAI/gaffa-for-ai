@@ -5,6 +5,8 @@ Pull the recording with `GET /v1/browser/requests/{id}` and read these fields.
 All fields live under the top-level `data` object in the response.
 The field set includes `data.id`, `data.url`, `data.actual_url`, `data.state`, `data.credit_usage`, `data.http_status_code`, `data.from_cache`, `data.started_at`, `data.completed_at`, `data.running_time`, `data.page_load_time`, and `data.actions` (each action carries its result in `output`, a URL by default or the content itself for `output_type: "inline"`).
 When relevant the response also carries `data.error`, `data.error_reason`, and `data.proxy_location`.
+`data.data_deleted: true` means retention removed the request's stored files (the video, outputs stored as URLs, and reference files).
+Inline outputs and redirects stay.
 With `log_redirects` set it also carries `data.redirects`.
 With `record_request: true` it also includes `data.video`.
 A finished request has `data.state` equal to `completed` whether it succeeded or not, `data.error` tells them apart.
@@ -20,9 +22,9 @@ A non-200 response carries `{"error": {"type", "id", "code", "message"}}`, excep
 | `data.running_time` much greater than `data.page_load_time` | flaky timing | Add a `wait` action or raise `time_limit` |
 | `data.error` is `request_timeout` and the open actions end `action_cancelled` | the request hit `time_limit` | Raise `time_limit` within the plan cap or trim the actions. A request cancelled this way is not billed |
 | `data.from_cache: true` when fresh data expected | cross-user cache hit | Set `max_cache_age: 0` or change a parameter to bust the cache key |
-| A `loop` action ends `action_timed_out` | its `timeout` covers all iterations together and ran out | Raise the loop `timeout` or lower the iteration count. Completed iterations keep their outputs, under the loop entry's `actions` array |
+| A `loop` action ends `action_timed_out` | its `timeout` covers all iterations together and ran out | Raise the loop `timeout` or lower the iteration count. Completed iterations keep their outputs, under the loop entry's `actions` array, and actions finished during the final incomplete pass are recorded too. The `iterations` count only includes passes that ran to completion |
 | Actions after a `loop` end `action_cancelled` | the loop exited early and cancelled the rest | Set `continue_on_fail: true` on the loop so the actions after it still run |
-| `GET` returns 404 | recording expired past retention | Re-run with `record_request: true`. Retention is 7 days / 30 days / 3 months by plan |
+| `data.data_deleted: true` | stored files expired past retention | Re-run with `record_request: true`. Retention is 7 days / 30 days / 3 months by plan |
 
 ## Notes
 

@@ -27,7 +27,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/schemas \
 
 A schema is a structured object: a `name`, a `description`, and a `fields` array where each field has `type`, `name`, and `description`.
 The response carries the schema id.
-Use `PUT /v1/schemas/{id}` to update, `GET /v1/schemas` to list, and `DELETE /v1/schemas/{id}` to remove.
+Use `PUT /v1/schemas/{id}` to update, `GET /v1/schemas` to list, and `DELETE /v1/schemas/{id}` to remove, which answers 204 with an empty body.
 Update and delete both take the id in the path.
 Confirm the exact create body against the live docs before relying on it, because the schema body format can change.
 

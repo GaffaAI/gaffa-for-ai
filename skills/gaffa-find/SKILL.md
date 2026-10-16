@@ -30,13 +30,17 @@ The skill enforces the caps below.
 2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
    Set `"async": true` to get an id back immediately.
    Poll `GET /v1/browser/requests/{id}` for the result.
-3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
-   Sync requests (`"async": false`) are capped at 60 seconds on every plan.
+3. Max runtime is plan-tiered for both sync and async requests.
+   Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
    Check the live docs for the current model and token rates.
    Other actions are deterministically priced.
+   A browser request is billed at 1 credit per 30 seconds of runtime, doubled when screen recording is on.
+   Proxy bandwidth is billed at 750 credits per GB for any request that sets `proxy_location`.
+   A mapping request (`/v1/site/map`) costs 2 credits when it builds the map, 1 when it serves a cached map ranked by a `search_query`, and 0 for a cached map without one, or for a partial failure.
 5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra.
    The find loop is reconnaissance, so it records every browser request it makes and `/gaffa-debug` has a recording to inspect a failed attempt.
    Leave it off in the re-runnable script the skill hands back.
@@ -59,7 +63,9 @@ LLM-backed extraction runs through the `parse_json` action, with an inline `data
 `parse_json` is not the only way to get data off a page, see step 3 of the loop.
 On a large content-rich page, `parse_json` over the full DOM can fail with `action_failed` (verified on Wikipedia), so narrow the input with a `selector` for the region that holds the data, or set `input_token_cap`.
 
-Reconnaissance uses `POST /v1/site/map` (singular `map`, the POST waits for the crawl and returns the links) or a broad markdown capture (`generate_markdown`).
+Reconnaissance uses `POST /v1/site/map` (singular `map`) or a broad markdown capture (`generate_markdown`).
+The POST can run synchronously and return the links directly, or set `async: true` in the request body to get the request back immediately with state `pending` and poll `GET /v1/site/map/{id}` for the result.
+A `search_query` ranks the returned links by similarity (best first, with `extracted_text` and `similarity_score` on each link), and results can be truncated (`truncated`, `total_link_count`) or partial (`partial_failure`, `failed_sitemaps`).
 
 ## Preferences
 
@@ -94,7 +100,7 @@ Resolve documentation queries in two tiers, in order.
    `searchDocumentation` (param `query`) for "how do I do X".
    `getPage` (param `url`) to fetch one page by URL.
 2. Fallback: live HTTP fetch.
-   `?ask=` against the docs for narrow lookups, `https://gaffa.dev/docs/llms.txt` for breadth.
+   `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth.
    Per-call timeout of 5 seconds.
 
 MCP availability probe, once per session, cached, total budget 10 seconds: JSON-RPC `initialize`, then the mandatory `notifications/initialized` notification, then `tools/list` confirming `searchDocumentation` and `getPage` (or at least one).
@@ -145,10 +151,11 @@ On `needs-human-review` or `terminal-failure`, end the output with one line: *St
   Optional: an explicit validator passed as `--validator` (a regex, JSON schema, or expected type) for deterministic termination, and a max-iterations override.
 - Pre-flight credit estimate before each request.
   Pause and confirm when the invocation total would breach `CREDITS_PER_INVOCATION`.
+  Browser requests are billed at 1 credit per 30 seconds of runtime, doubled to 2 credits per 30 seconds when screen recording is enabled, and mapping requests at up to 2 credits each, factor both into the estimate.
   For token-priced actions (`parse_json`, `/v1/schemas`) gate against the upper bound of the estimate, not the midpoint.
   For `parse_json`, fetch current rates from https://gaffa.dev/docs/features/browser-requests/actions/parse-json.md once per invocation, reuse that cached rate for later requests, and add a 50% safety margin on output tokens.
   For `/v1/schemas`, pin a conservative ceiling at the worst current `parse_json` rate applied to the captured page size in tokens, tell the developer the ceiling is a guess, and ask for confirmation regardless of headroom.
-  Count the proxy bandwidth too: requests set `proxy_location` by default and the bandwidth is billed separately, so add a rough allowance for the page weight and say it is a guess.
+  Count the proxy bandwidth too: requests set `proxy_location` by default and are billed at 750 credits per GB, so add a rough allowance for the page weight and say it is a guess.
 - `--reconnaissance-only` returns the site map or landing capture without entering the extraction loop.
 - Per-iteration reasoning is logged to `./.gaffa-find-<timestamp>.log` in the developer's working directory, written through the redaction-then-tempfile-then-atomic-rename path.
   Create it before the first request and append after every iteration, a run without the log is incomplete.

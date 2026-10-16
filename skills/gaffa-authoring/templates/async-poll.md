@@ -33,7 +33,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 The response is wrapped in a top-level `data` object, so the id is at `data.id`.
 The 60000 ms above (60 seconds) matches the default, set it anyway so the value is visible and intentional.
 If you omit `time_limit` it defaults to 60000 ms on every plan, it does not grow with the plan.
-Set it explicitly and raise it toward your plan max if the job needs longer (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min async).
+Set it explicitly and raise it toward your plan max if the job needs longer (async maximums: Pay As You Go and Starter 60,000 ms / 60s, Startup 120,000 ms / 2 min, Growth 300,000 ms / 5 min).
 A value above the cap is rejected with a 400 `time_limit_too_long` before the request runs.
 
 ## Poll
@@ -50,6 +50,7 @@ Keep polling on any other state rather than hard-coding the in-progress names, s
 Always bound the loop with a deadline so it cannot spin forever, for example `time_limit` plus a margin for queueing and network.
 On reaching the deadline, stop and report a timeout rather than continuing to poll.
 A finished run carries `data.actions` (each action result is in `data.actions[].output`, a storage URL by default or the content itself with `output_type: "inline"`) plus `data.credit_usage`, `data.from_cache`, `data.started_at`, `data.completed_at`, `data.running_time`, and `data.page_load_time`.
+It also carries `data.http_status_code`, `data.url`, `data.actual_url`, `data.proxy_location`, `data.redirects` (when `log_redirects` was set), and `data.data_deleted`.
 A failed run carries `data.error` and `data.error_reason`.
 If you set `record_request: true`, the response also carries `data.video`.
 
@@ -58,7 +59,7 @@ If you set `record_request: true`, the response also carries `data.video`.
 - `record_request: true` lets `/gaffa-debug` inspect what happened later, within the plan-tiered retention window (7 days / 30 days / 3 months).
   It costs extra, so set it while exploring or debugging, not in shipped code.
 - `proxy_location` is set to `us`, so the request goes out from a residential IP in that country instead of the datacenter IP it uses when the field is unset.
-  Another supported location (`ie`, `sg`, `fr`) changes the country, and proxy bandwidth is billed.
+  Another supported location (`ie`, `sg`, `fr`) changes the country, and proxy bandwidth is billed at 750 credits per 1GB.
 - `max_cache_age` is a root-level field, not under `settings`, and is in seconds.
   It defaults to 0, so the cross-user cache is only used when you set it.
 - Never place the key in the URL or query string.

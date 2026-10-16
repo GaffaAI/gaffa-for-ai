@@ -20,13 +20,17 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
 2. `POST /v1/browser/requests` runs synchronously by default and returns the finished result.
    Set `"async": true` to get an id back immediately.
    Poll `GET /v1/browser/requests/{id}` for the result.
-3. Max runtime is plan-tiered (1 / 2 / 5 min) for async requests.
-   Sync requests (`"async": false`) are capped at 60 seconds on every plan.
+3. Max runtime is plan-tiered for both sync and async requests.
+   Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
    Check the live docs for the current model and token rates.
    Other actions are deterministically priced.
+   A browser request is billed at 1 credit per 30 seconds of runtime, doubled when screen recording is on.
+   Proxy bandwidth is billed at 750 credits per GB for any request that sets `proxy_location`.
+   A mapping request (`/v1/site/map`) costs 2 credits when it builds the map, 1 when it serves a cached map ranked by a `search_query`, and 0 for a cached map without one, or for a partial failure.
 5. Request recordings (`settings.record_request: true`) are a recon and debugging tool, they cost extra, so leave them off in shipped code.
    `/gaffa-debug` needs one, without it the skill can only suggest re-running the failing request with recording enabled.
    The plans' general data retention applies (7 days / 30 days / 3 months), recordings share that window.
@@ -86,7 +90,8 @@ Most scraping tasks (a table, a list of cards, repeating items with a consistent
   - `capture_element` with a `selector` for a single, unique element.
 - Reach for `parse_json` when the value is buried in free text or moves around from page to page (a salary somewhere inside a job description), or when the task is interpretive rather than a lookup (summarising, classifying).
   That is where the LLM earns its cost.
-- Do not use `parse_json` when the developer needs identical output across runs. If they ask for it anyway, use it and say plainly that its output can vary between runs.
+- Do not use `parse_json` when the developer needs identical output across runs.
+  If they ask for it anyway, use it and say plainly that its output can vary between runs.
 - Keep a deterministic per-item rule out of the schema.
   When a field is a fixed rule applied to text already being extracted (a word-contains flag, a first word, an arithmetic result), extract the raw text and compute the field in the script.
   The extraction can let the page's subject override the rule.
@@ -129,7 +134,7 @@ Resolve documentation queries in two tiers, in order.
    `searchDocumentation` (param `query`, a string) for "how do I do X" questions.
    `getPage` (param `url`, a full URL) to fetch one page when you already have its URL.
 2. Fallback: live HTTP fetch.
-   `?ask=` against the docs for narrow lookups, `https://gaffa.dev/docs/llms.txt` for breadth, `https://gaffa.dev/docs/sitemap.md` for the full page index.
+   `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth, `https://gaffa.dev/docs/sitemap.md` for the full page index.
    Per-call timeout of 5 seconds.
    Used when the MCP is not configured or returns an error.
 
@@ -161,7 +166,8 @@ When the task reads data off a page, fetching the docs is not enough, capture th
 - Do not guess the page's markup.
   Whether the code needs a selector (for `parse_json` with a `selector`, `capture_element`, `click`, `select`, `type`, or `wait`) or parses a capture in the script itself, do not infer the class names or the element shape from the URL or from the existing code.
   First fetch the real page with gaffa using a `generate_simplified_dom` or `capture_dom` capture, read the actual elements, then write the selector or the parser from what is really there.
-  Content that is missing from that capture rendered late, so add a `wait` for its selector before the capture and try again rather than parsing an empty page.
+  Content that is missing from a DOM capture may still be reachable: `capture_dom` and `generate_simplified_dom` cover the main page only, and show iframes and web components as empty tags, so the element may live in a same-origin iframe or a web component's shadow DOM, where it can still be reached by a selector directly.
+  Content missing from the capture may also have rendered late, so add a `wait` for its selector before the capture and try again rather than assuming it is unreachable.
   A `wait` you add is only a precondition, the capture is still the action that reads the page, so keep the capture's own parameters such as a `custom_id` or a `selector` on the capture action, not on the `wait`.
   If that fetch fails with a connectivity error, the page is unreachable, usually because egress to `api.gaffa.dev` is blocked, so point the developer at the egress setup instead of guessing.
   If you genuinely cannot fetch the page, mark the selector as unverified and tell the developer to confirm it rather than presenting a guess as correct.
@@ -172,16 +178,16 @@ When the task reads data off a page, fetching the docs is not enough, capture th
   Pagination and other repeat-the-same-steps flows stay inside that one request with the `loop` action, capture first, then the click that moves on, see the catalog.
   What remains unsupported is session state across separate requests, every request starts a fresh session, so surface that up front when the developer's request needs it.
 - Always set `settings.time_limit` explicitly in generated code, based on what the job is expected to take.
-  You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan (Pay As You Go and Starter 1 min, Startup 2 min, Growth 5 min async).
+  You do not know the developer's plan max, so emit a code comment reminding the developer to verify the value fits their plan's cap (see Critical gaffa facts).
 - Leave `settings.record_request` off in emitted code.
   Set it to true only while exploring a site or when the developer is debugging a failing request, so `/gaffa-debug` has a recording to inspect within the retention window, and drop it again once the request works.
-  Recording doubles the browser-time charge, say so in a code comment.
+  Recording doubles the browser-time charge from 1 credit per 30 seconds to 2 credits per 30 seconds, say so in a code comment.
 - Set `proxy_location` on every emitted browser request, `us` unless the target is clearly in another supported country or the developer asks for one.
   With none set, the request goes out from a datacenter IP, which sites block more readily, so the residential IP is the safer default.
-  Proxies need a paid account and their bandwidth is billed, so note the charge in a code comment.
+  Proxies need a paid account, and all requests using `proxy_location` are billed at 750 credits per 1GB of bandwidth used, note the charge in a code comment.
   If a request fails with a proxy or access error, retry it once without `proxy_location`, some sites are restricted on the proxy network.
 - Default to the async pattern (`"async": true`, then poll the returned id).
-  Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the 60-second sync cap.
+  Use `"async": false` only when the developer asks for a blocking call and the expected runtime is well under the plan's sync cap.
 - Read the template that matches the task and adapt it to the developer's language and library.
   They are starting points, not literal output.
   - `templates/async-poll.md` for the POST-then-poll pattern.
