@@ -1,6 +1,18 @@
 {
   "name": "gaffa",
+  "version": "0.9.0",
   "description": "The Gaffa skills for writing code against the Gaffa browser-automation API, plus the Gaffa docs MCP.",
   "author": { "name": "Impetus Labs" },
-  "homepage": "https://gaffa.dev"
+  "homepage": "https://gaffa.dev",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "privacyPolicyUrl": "https://gaffa.dev/legal/privacy-policy",
+  "userConfig": {
+    "gaffa_api_key": {
+      "type": "string",
+      "title": "Gaffa API key",
+      "description": "Your API key from the Gaffa dashboard",
+      "sensitive": true
+    }
+  }
 }

@@ -11,7 +11,7 @@ Four agent skills for building on the [gaffa.dev](https://gaffa.dev) browser-aut
 
 ## Install as a plugin
 
-This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy and nothing to configure. Pi is the one exception.
+This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy. Pi is the one exception. Claude Code also asks for your Gaffa API key on install and hands it to the skills, see Setup.
 
 For Claude Code, Codex and GitHub Copilot, point the tool's plugin marketplace at this repository, then install the `gaffa` plugin from it. Cursor, Antigravity and Pi install differently and are covered below.
 
@@ -103,7 +103,7 @@ The agent selects a skill automatically from its `description` when the task mat
 
 Set up two things once before running the skills.
 
-1. API key. The skills read the key from the `GAFFA_API_KEY` environment variable only. It is never prompted for, written to disk, or logged. Set it persistently rather than pasting it each session, for example `export GAFFA_API_KEY=...` in your shell profile. The key stays out of version control.
+1. API key. The skills read the key from the `GAFFA_API_KEY` environment variable. Set it persistently rather than pasting it each session, for example `export GAFFA_API_KEY=...` in your shell profile. The key stays out of version control. The Claude Code plugin install asks for the key instead and stores it in the macOS Keychain, or a credentials file under `~/.claude` elsewhere, then a session start hook exports it as `GAFFA_API_KEY` for the shell commands the skills run. Leave the prompt empty to keep using the environment variable.
 2. Network egress. The skills call `api.gaffa.dev` and read docs from `gaffa.dev`. Behind a sandbox or proxy that blocks outbound traffic, allow both hosts first, or requests fail as connectivity errors.
 
 The first real request confirms the setup. A missing or invalid key returns a clear authentication error, and a blocked host surfaces as a connectivity error that points back to the egress step.
