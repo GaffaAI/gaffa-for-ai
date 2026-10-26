@@ -25,7 +25,7 @@ curl -sS -X POST https://api.gaffa.dev/v1/browser/requests \
 
 ## Notes
 
-- The sync cap is plan-tiered: 60,000 ms (60s) on Pay As You Go and Starter, 120,000 ms (2 min) on Startup and Growth (Growth sync is clamped from its 300,000 ms async cap).
+- The sync cap is plan-tiered: 60,000 ms (60s) on Pay As You Go and Starter, 90,000 ms (90s) on Startup and Growth.
   The async maximums differ: 60,000 ms (60s) on Pay As You Go and Starter, 120,000 ms (2 min) on Startup, 300,000 ms (5 min) on Growth.
   If the job can exceed the sync cap, prefer the async-poll template instead.
 - Set the HTTP client read timeout above `time_limit` so the client does not abort a request that is still within its allowed runtime.

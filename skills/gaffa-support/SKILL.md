@@ -26,7 +26,7 @@ The skill runs entirely on the developer's machine: it reads the gaffa docs but 
    Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered for both sync and async requests.
    Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
-   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 90 seconds on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -76,6 +76,8 @@ Resolve documentation queries in two tiers, in order.
 1. Preferred: gaffa docs MCP server at `https://gaffa.dev/docs/~gitbook/mcp`.
    `searchDocumentation` (param `query`) for "how do I do X".
    `getPage` (param `url`) to fetch one page by URL.
+   `askQuestion` (param `question`, optional `goal`) for a direct answer with links to the source pages.
+   `sendFeedback` (params `content` and `pageUrl`, optional `goal`) to report a docs page that is outdated, contradictory or missing something.
 2. Fallback: live HTTP fetch.
    `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth.
    Per-call timeout of 5 seconds.
@@ -85,7 +87,8 @@ Per-call MCP timeout is 5 seconds.
 Two consecutive timeouts demote to live HTTP for the rest of the session, announced once.
 
 If both tiers fail, skip the in-session resolution attempt, say the docs are unavailable, and continue to the report so the developer is not left empty-handed.
-Both tiers read from `gaffa.dev`, so note the likely cause: `gaffa.dev` blocked by the environment's egress or proxy policy, separate from `api.gaffa.dev`, which the setup section in the skills README covers.
+Both tiers read from `gaffa.dev`, so note the likely cause: `gaffa.dev` blocked by the environment's egress or proxy policy, separate from `api.gaffa.dev`.
+The fix is to allow `gaffa.dev` and `*.gaffa.dev`, see https://gaffa.dev/docs/ai-tools/tools/gaffa-ai-skills#allow-gaffa-through-your-network.
 
 ## Phase 1: resolve
 

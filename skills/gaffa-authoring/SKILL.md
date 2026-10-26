@@ -22,7 +22,7 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
    Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered for both sync and async requests.
    Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
-   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 90 seconds on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -84,7 +84,7 @@ Most scraping tasks (a table, a list of cards, repeating items with a consistent
   Good for a price in a known element, a list of cards with a consistent shape, a field in a JSON blob.
   The options, in rough order of how often they fit:
   - `parse_table` with a `selector` for a table, which returns the rows already structured.
-  - For repeating items (cards, list rows, search results), capture the whole containing region once, then extract every item from that one capture in the script, for example with an HTML parser (BeautifulSoup in Python, Cheerio in JS).
+  - For repeating items (cards, list rows, search results), capture the whole containing region once, then extract every item from that one capture in the script, for example with an HTML parser.
     Capture the wrapper with `capture_dom` or `capture_element`, or `generate_markdown` with a `selector` when the markdown keeps enough structure.
     Prefer this over one capture or one request per item: a bare repeated selector like `h1` is unreliable when the page has several, and capturing them one at a time is slower and more brittle.
   - `capture_element` with a `selector` for a single, unique element.
@@ -133,6 +133,8 @@ Resolve documentation queries in two tiers, in order.
    When the developer has it configured, call its tools directly.
    `searchDocumentation` (param `query`, a string) for "how do I do X" questions.
    `getPage` (param `url`, a full URL) to fetch one page when you already have its URL.
+   `askQuestion` (param `question`, optional `goal`) for a direct answer with links to the source pages.
+   `sendFeedback` (params `content` and `pageUrl`, optional `goal`) to report a docs page that is outdated, contradictory or missing something.
 2. Fallback: live HTTP fetch.
    `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth, `https://gaffa.dev/docs/sitemap.md` for the full page index.
    Per-call timeout of 5 seconds.
@@ -152,8 +154,8 @@ If two consecutive calls in one session time out, demote to live HTTP for the re
 If both tiers fail before any code is emitted, refuse with a clear message rather than guessing from training data.
 Both tiers read from `gaffa.dev`, so when they fail together the usual cause is that `gaffa.dev` is blocked by the environment's egress policy, separate from `api.gaffa.dev`.
 The message names that first: "Live gaffa docs are unavailable.
-If `gaffa.dev` is blocked by your environment's egress or proxy policy, allow it and retry, see the setup section in the skills README.
-Otherwise retry, or consult https://gaffa.dev/docs manually." If no gaffa MCP was configured, the message also suggests registering `https://gaffa.dev/docs/~gitbook/mcp` for faster lookups.
+If `gaffa.dev` is blocked by your environment's egress or proxy policy, allow `gaffa.dev` and `*.gaffa.dev` and retry, see https://gaffa.dev/docs/ai-tools/tools/gaffa-ai-skills#allow-gaffa-through-your-network.
+Otherwise retry, or consult https://gaffa.dev/docs manually." If no gaffa MCP was configured, the message also suggests `npx @gaffa-dev/cli install`, which registers `https://gaffa.dev/docs/~gitbook/mcp` for faster lookups.
 
 ## First action
 
