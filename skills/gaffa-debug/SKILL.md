@@ -27,7 +27,7 @@ The only cap that applies is the credits-per-invocation cap on the optional re-r
    Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered for both sync and async requests.
    Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
-   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 90 seconds on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -86,6 +86,8 @@ Resolve documentation queries in two tiers, in order.
 1. Preferred: gaffa docs MCP server at `https://gaffa.dev/docs/~gitbook/mcp`.
    `searchDocumentation` (param `query`) for "how do I do X".
    `getPage` (param `url`) to fetch one page by URL.
+   `askQuestion` (param `question`, optional `goal`) for a direct answer with links to the source pages.
+   `sendFeedback` (params `content` and `pageUrl`, optional `goal`) to report a docs page that is outdated, contradictory or missing something.
 2. Fallback: live HTTP fetch.
    `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth.
    Per-call timeout of 5 seconds.
@@ -116,7 +118,7 @@ Do not claim to have read a parameter you could not see.
   The recording, if there was one, has expired.
 - If `settings.record_request` was not set on the original request, surface that no recording was captured, so a re-run is needed to inspect what happened.
 - A recommended re-run sets `record_request: true` and adds `capture_dom` and `capture_screenshot` actions.
-- All recording payloads have credential fields scrubbed per the credential-hygiene rules before being shown to the developer, to Claude, or to any LLM judge.
+- All recording payloads have credential fields scrubbed per the credential-hygiene rules before being shown to the developer, to the agent, or to any LLM judge.
 - If the diagnosis is inconclusive (an expired recording, no recording and no re-run, or a target-side failure with no script-side fix), end the output with one line: *Still stuck? Run `/gaffa-support` to get help or file a report.*
 
 ### Failure classification from recording fields

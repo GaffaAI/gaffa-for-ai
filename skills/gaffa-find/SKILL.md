@@ -32,7 +32,7 @@ The skill enforces the caps below.
    Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered for both sync and async requests.
    Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
-   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 90 seconds on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -99,6 +99,8 @@ Resolve documentation queries in two tiers, in order.
 1. Preferred: gaffa docs MCP server at `https://gaffa.dev/docs/~gitbook/mcp`.
    `searchDocumentation` (param `query`) for "how do I do X".
    `getPage` (param `url`) to fetch one page by URL.
+   `askQuestion` (param `question`, optional `goal`) for a direct answer with links to the source pages.
+   `sendFeedback` (params `content` and `pageUrl`, optional `goal`) to report a docs page that is outdated, contradictory or missing something.
 2. Fallback: live HTTP fetch.
    `?ask=<question>&goal=<user_goal>` against the docs for narrow lookups, where `goal` is the outcome the user wants, `https://gaffa.dev/docs/llms.txt` for breadth.
    Per-call timeout of 5 seconds.
@@ -114,6 +116,8 @@ If both tiers fail mid-flight (at least one iteration done), do not discard prog
 
 Once the URL and goal are in hand, fire a reconnaissance request, not a doc load.
 The reconnaissance (site map or broad markdown capture) tells you where the answer is likely to live before you commit to a selector.
+A dialog or banner the user mentions is real even when the capture does not show it.
+Many open a moment after load, so give the reconnaissance capture a `wait` with a `time` of a few seconds first, and keep the click that dismisses it, with a `timeout` and `continue_on_fail`, rather than concluding there is none.
 
 ## Terminal states
 

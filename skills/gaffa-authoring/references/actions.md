@@ -137,9 +137,11 @@ There is no single-element screenshot, use `capture_element` for the HTML or scr
 - No parameters beyond the universal ones are documented.
 
 Produces a single HTML file that loads offline, with all images loaded and embedded and all CSS files embedded.
-JavaScript is switched off in the saved file, so open tabs and expand sections with `click` and `wait` before capturing.
+JavaScript is switched off in the saved file, so open tabs and expand sections with `click` and `wait` before capturing, and `scroll` to the bottom first on pages that load content as you scroll.
 Snapshots are large, since every image and stylesheet is embedded in the file.
 Reach for it when the page will be read or searched later, `capture_screenshot` only shows it, `print` makes a paper-style PDF.
+The saved file has a URL of its own.
+Feed that URL back into a Gaffa browser request as the `url`, with `parse_json` or `generate_markdown` as the action, to work on the snapshot even after the live page changed or went away.
 
 ### capture_element
 - `selector` (string, required): selector for the target element.
