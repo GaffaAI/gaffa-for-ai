@@ -1,13 +1,31 @@
 # gaffa-for-ai
 
-Four agent skills for building on the [gaffa.dev](https://gaffa.dev) browser-automation REST API, plus the Gaffa docs MCP server, installable as one plugin.
+Four [agent skills](https://gaffa.dev/docs/ai-tools/tools/gaffa-ai-skills) for building on the [gaffa.dev](https://gaffa.dev) browser-automation REST API, plus the [Gaffa docs MCP server](https://gaffa.dev/docs/ai-tools/tools/gaffa-docs-mcp-server), installable as one plugin.
 
 | Skill | Entry | What it does |
 |---|---|---|
-| `gaffa-authoring` | auto-invokes on a gaffa coding prompt | Writes, edits, ports, or reviews code that calls the gaffa API. Loads verified facts and live docs before generating code. |
-| `gaffa-find` | `/gaffa-find` | Iteratively discovers and extracts one piece of information from a target site, given a URL and a plain-language goal. |
-| `gaffa-debug` | `/gaffa-debug` | Diagnoses a failing request or `brq_*` id from its recording and proposes a minimal patch. |
-| `gaffa-support` | `/gaffa-support` (slash only) | Helps when stuck: tries to resolve the problem first, then packages a redacted local report to email to support. Slash only on Claude Code, Cursor, Codex, Copilot and Pi. Pi honors `disable-model-invocation: true`, so the skill auto-hides and is reached via `/skill:gaffa-support`. Antigravity has no way to opt a skill out of automatic selection, so there the agent can still reach for it. |
+| [`gaffa-authoring`](skills/gaffa-authoring/) | auto-invokes on a gaffa coding prompt | Writes, edits, ports, or reviews code that calls the gaffa API. Loads verified facts and live docs before generating code. |
+| [`gaffa-find`](skills/gaffa-find/) | `/gaffa-find` | Iteratively discovers and extracts one piece of information from a target site, given a URL and a plain-language goal. |
+| [`gaffa-debug`](skills/gaffa-debug/) | `/gaffa-debug` | Diagnoses a failing request or `brq_*` id from its recording and proposes a minimal patch. |
+| [`gaffa-support`](skills/gaffa-support/) | `/gaffa-support` (slash only) | Helps when stuck: tries to resolve the problem first, then packages a redacted local report to email to support. Slash only on Claude Code, Cursor, Codex, Copilot and Pi. Pi honors `disable-model-invocation: true`, so the skill auto-hides and is reached via `/skill:gaffa-support`. Antigravity has no way to opt a skill out of automatic selection, so there the agent can still reach for it. |
+
+## Install with the Gaffa CLI
+
+The quickest route is the [Gaffa CLI](https://gaffa.dev/docs/ai-tools/tools/gaffa-cli). It copies the four skills into the tools you pick and registers the Gaffa docs MCP server in each one, for Claude Code, Codex, GitHub Copilot, Cursor, Antigravity and Pi. It runs through npx, so there is nothing to install beyond Node.js 22 or newer. Run it in the project you want to set up:
+
+```
+npx @gaffa-dev/cli install
+```
+
+With no flags it asks which tools to set up, defaulting to the ones it detects, and which scope. To skip the questions, pass them:
+
+```
+npx @gaffa-dev/cli install --tools=claude-code,codex --scope=personal
+```
+
+`--scope=project`, the default, writes into the working directory so you can commit the skills with the repo. `--scope=personal` writes into your home config. Running `install` again updates to the current skills, and `npx @gaffa-dev/cli doctor` reports what is set up and whether it is out of date. The [gaffa-cli repository](https://github.com/GaffaAI/gaffa-cli) covers the rest, including `uninstall`.
+
+To install as a plugin or by copying instead, read on.
 
 ## Install as a plugin
 
@@ -74,7 +92,7 @@ pi mcp add gaffa-docs --url https://gaffa.dev/docs/~gitbook/mcp
 
 ## Install by copying
 
-Each skill is a self-contained folder that follows the open Agent Skills standard (a `SKILL.md` with `name` and `description` frontmatter), so it works in any tool that reads that format. Copy the folders you want out of `skills/` into the directory your tool reads:
+Each skill is a self-contained folder that follows the open [Agent Skills standard](https://agentskills.io) (a `SKILL.md` with `name` and `description` frontmatter), so it works in any tool that reads that format. Copy the folders you want out of `skills/` into the directory your tool reads:
 
 | Tool | Project directory | Personal directory |
 |---|---|---|
@@ -95,7 +113,7 @@ cp -r skills/gaffa-authoring .claude/skills/gaffa-authoring
 
 Swap the target for your tool. Copy only the skills you want, they do not depend on each other. Restart or reload the tool after adding a skill so it picks them up.
 
-Copying this way brings the skills but not the docs MCP server, which the plugin install registers for you. To add it by hand, point your tool at `https://gaffa.dev/docs/~gitbook/mcp`. It takes no authentication. The two config files in this repo are the shapes to copy: `.mcp.json` for Claude Code and Cursor, and `mcp_config.json` for Antigravity, which uses `serverUrl` where the others use a type and a url. Without it the skills fall back to fetching the docs over plain HTTP, which works and is just slower.
+Copying this way brings the skills but not the docs MCP server, which the plugin install registers for you. To add it by hand, point your tool at `https://gaffa.dev/docs/~gitbook/mcp`. It takes no authentication. The two config files in this repo are the shapes to copy: [`.mcp.json`](.mcp.json) for Claude Code and Cursor, and [`mcp_config.json`](mcp_config.json) for Antigravity, which uses `serverUrl` where the others use a type and a url. Without it the skills fall back to fetching the docs over plain HTTP, which works and is just slower.
 
 The agent selects a skill automatically from its `description` when the task matches. The slash commands in the table above are a Claude Code affordance. Codex reaches the same skills as `$gaffa-find` or through its picker. In other tools, describe the task and the agent invokes the right skill.
 
@@ -103,7 +121,7 @@ The agent selects a skill automatically from its `description` when the task mat
 
 Set up two things once before running the skills.
 
-1. API key. The skills read the key from the `GAFFA_API_KEY` environment variable. Set it persistently rather than pasting it each session, for example `export GAFFA_API_KEY=...` in your shell profile. The key stays out of version control. The Claude Code plugin install asks for the key instead and stores it in the macOS Keychain, or a credentials file under `~/.claude` elsewhere, then a session start hook exports it as `GAFFA_API_KEY` for the shell commands the skills run. Leave the prompt empty to keep using the environment variable.
+1. [API key](https://gaffa.dev/dashboard/api-keys). The skills read the key from the `GAFFA_API_KEY` environment variable only. It is never prompted for, written to disk, or logged. Set it persistently rather than pasting it each session, for example `export GAFFA_API_KEY=...` in your shell profile. The key stays out of version control.
 2. Network egress. The skills call `api.gaffa.dev` and read docs from `gaffa.dev`. Behind a sandbox or proxy that blocks outbound traffic, allow both hosts first, or requests fail as connectivity errors.
 
 The first real request confirms the setup. A missing or invalid key returns a clear authentication error, and a blocked host surfaces as a connectivity error that points back to the egress step.
@@ -111,5 +129,5 @@ The first real request confirms the setup. A missing or invalid key returns a cl
 ## Notes
 
 - Gaffa has no official SDK. The skills emit REST calls in whatever language and library your project already uses.
-- The gaffa docs MCP server makes documentation lookups faster. The plugin install registers it for you, except on Pi, and the install sections above cover adding it by hand.
-- The skills spend gaffa credits. `/gaffa-find` enforces a tunable cost cap set in its `SKILL.md`. `/gaffa-debug` spends credits only on an optional re-run after explicit confirmation. `/gaffa-support` spends no credits and makes no gaffa API call.
+- The [gaffa docs MCP server](https://gaffa.dev/docs/ai-tools/tools/gaffa-docs-mcp-server) makes documentation lookups faster. The plugin install registers it for you, except on Pi, and the install sections above cover adding it by hand.
+- The skills spend [gaffa credits](https://gaffa.dev/docs/credits-and-pricing). `/gaffa-find` enforces a tunable cost cap set in its [`SKILL.md`](skills/gaffa-find/SKILL.md). `/gaffa-debug` spends credits only on an optional re-run after explicit confirmation. `/gaffa-support` spends no credits and makes no gaffa API call.
