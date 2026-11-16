@@ -1,6 +1,6 @@
 {
   "name": "@gaffa-dev/skills",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "The Gaffa skills for writing code against the Gaffa browser-automation API.",
   "license": "MIT",
   "author": {
@@ -15,9 +15,5 @@
   "files": [
     "skills",
     "README.md"
-  ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  }
+  ]
 }
