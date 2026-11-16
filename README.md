@@ -29,7 +29,7 @@ To install as a plugin or by copying instead, read on.
 
 ## Install as a plugin
 
-This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy. Pi is the one exception. Claude Code also asks for your Gaffa API key on install and hands it to the skills, see Setup.
+This repo is a plugin. Installing it brings in all four skills and registers the Gaffa docs MCP server in one step, so there is nothing to copy. Pi is the one exception.
 
 For Claude Code, Codex and GitHub Copilot, point the tool's plugin marketplace at this repository, then install the `gaffa` plugin from it. Cursor, Antigravity and Pi install differently and are covered below.
 
