@@ -32,7 +32,7 @@ The skill enforces the caps below.
    Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered for both sync and async requests.
    Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
-   Sync maximum: 60 seconds on Pay As You Go and Starter, 90 seconds on Startup and Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.

@@ -51,6 +51,7 @@ Always bound the loop with a deadline so it cannot spin forever, for example `ti
 On reaching the deadline, stop and report a timeout rather than continuing to poll.
 A finished run carries `data.actions` (each action result is in `data.actions[].output`, a storage URL by default or the content itself with `output_type: "inline"`) plus `data.credit_usage`, `data.from_cache`, `data.started_at`, `data.completed_at`, `data.running_time`, and `data.page_load_time`.
 It also carries `data.http_status_code`, `data.url`, `data.actual_url`, `data.proxy_location`, `data.redirects` (when `log_redirects` was set), and `data.data_deleted`.
+When session continuation is enabled, it also carries a `data.session_continuation` object with `session_id`, `host`, `port`, `username`, `password`, `expires_at`, `location`, and `assigned_ip`.
 A failed run carries `data.error` and `data.error_reason`.
 If you set `record_request: true`, the response also carries `data.video`.
 

@@ -22,7 +22,7 @@ For anything beyond them, consult the live docs (see Doc-fetching strategy).
    Poll `GET /v1/browser/requests/{id}` for the result.
 3. Max runtime is plan-tiered for both sync and async requests.
    Async maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup, 5 minutes on Growth.
-   Sync maximum: 60 seconds on Pay As You Go and Starter, 90 seconds on Startup and Growth.
+   Sync maximum: 60 seconds on Pay As You Go and Starter, 2 minutes on Startup and Growth.
    Always set `settings.time_limit` explicitly.
 4. `parse_json` is token-priced, so its cost scales with the content parsed rather than being a flat per-call charge.
    Stored `/v1/schemas` extractions run the same `parse_json` action and are priced the same way.
@@ -55,7 +55,11 @@ On a large content-rich page, `parse_json` over the full DOM can fail with `acti
 - Endpoints: `POST/GET /v1/browser/requests`, `GET /v1/browser/requests/{id}`, `POST/GET /v1/schemas`, `PUT /v1/schemas/{id}`, `DELETE /v1/schemas/{id}`, `POST/GET /v1/site/map`, `GET /v1/site/map/{id}`.
   The path is singular `map`, easy to typo as `maps`.
   Schema update and delete both take the id in the path.
-- Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth` (in MB, 0 blocks all images and videos, unset means no limit), `block_ads` (beta), and `log_redirects`, which adds a `redirects` list of every URL the browser went through to the response.
+- `GET /v1/browser/requests` supports query parameters `ids`, `status` (pending, completed, failed, queued), `pageSize` (default 30, max 100) and `page` (default 1), and returns a paged envelope of `total_pages`, `total_records`, `results`, `page` and `page_size`.
+- Settings fields under `settings`: `actions`, `time_limit`, `record_request`, `max_media_bandwidth` (in MB, 0 blocks all images and videos, unset means no limit), `block_ads` (beta, default false), `log_redirects`, which adds a `redirects` list of every URL the browser went through to the response.
+  Also `block_non_essential_assets` (default false), which blocks fonts and third-party stylesheets to reduce bandwidth, without blocking scripts or API calls a JS SPA needs to function.
+  `output` is an object with `webhook_url`, restricted to integration requests.
+  `session_continuation` is an object with `enabled`, `duration_minutes` (default 30) and `vendor`.
   `max_cache_age` and `proxy_location` are root-level body fields, not under `settings`.
 - `max_cache_age` is in seconds and defaults to 0, so the cross-user cache is only used when you set it.
 - A non-200 response carries `{"error": {"type", "id", "code", "message"}}`, except 401, which is the plain text `Invalid API Key`, so do not JSON-parse an error body blindly.
