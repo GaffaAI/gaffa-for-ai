@@ -18,6 +18,9 @@ Actions run in the order they are submitted.
 
 Every `selector` parameter below runs through Playwright's selector engine, not plain CSS.
 All standard CSS works, and so do Playwright's extensions: text selectors such as `:has-text('foo')`, `:text('foo')`, `:text-is('foo')` and `:text-matches('regex', 'flags')`, plus `:visible`, `:nth-match(selector, n)`, `:light()`, `>>` for chaining selector types together, and XPath.
+`:has-text()` and `:text()` are case-insensitive, and `:text()` is trimmed and matches the smallest element directly containing the text.
+`:text-is()` is an exact, case-sensitive, trimmed match.
+Positional selectors such as `:right-of()` are deprecated.
 Pseudo-elements such as `::before` cannot be targeted, there is no real element to return.
 Elements inside same-origin iframes are reached with a plain selector, no frame targeting needed.
 Cross-origin iframes are currently out of reach, a selector cannot match inside them.
@@ -83,6 +86,7 @@ If the dropdown loads after the page, `wait` for it first.
 Typing does not submit, follow with a `click` on the submit button and a `wait` for what comes next.
 Target the input element itself, not its wrapper.
 Inside attribute selectors use single quotes (`input[name='email']`) so the selector needs no escaping in the JSON string.
+You can also escape double quotes with backslashes (`"input[name=\"email\"]"`), but unescaped double quotes will break the request.
 One `type` action per field, checkboxes, radios and custom dropdowns take a `click`, a native `<select>` takes `select`.
 Close a cookie banner or modal with a `click` first, an overlay blocks the field even when the selector is right.
 Gaffa types character by character with real keyboard events rather than pasting the whole string, which suits sites that watch for unusual input, though it won't defeat every detection method.
@@ -99,6 +103,7 @@ Never set both.
 When both are set, `time` takes priority and the `timeout` is ignored, the browser moves on once `time` runs out whether or not the `selector` appeared.
 No `wait` is needed before `click`, `capture_element`, or `parse_table`, they wait for their own selector.
 Set `continue_on_fail: true` when the awaited element may never appear.
+A fixed `time` is still the right choice for animations settling or for deliberately slowing a sequence down, and for first calls when you don't yet know the page structure.
 
 ### block_dom_removals
 - No parameters beyond the universal ones are documented.
@@ -177,7 +182,7 @@ Tables survive as Markdown tables, but code that processes a table wants `parse_
 - No parameters beyond the universal ones are documented.
 
 The selector-discovery step: run it, read the stable ids and classes, then write the other actions' selectors from what is there.
-Query strings are stripped from links, use `capture_dom` when URL parameters matter.
+Query strings are stripped from links, use `capture_dom` or `capture_element` when URL parameters matter.
 
 ### print
 - `size` (string, optional): paper size, `A4` is the only accepted value at the moment.
